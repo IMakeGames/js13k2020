@@ -5,7 +5,7 @@
     <title>Title</title>
 </head>
 <body>
-<canvas id=main width=999 height=999></canvas>
+<canvas id=main width=1000 height=1000></canvas>
 <style>
     #main {position:fixed;width:99.5vmin;top:49.9%;left:49.9%;transform:translateX(-50%)translateY(-50%);}
 </style>
@@ -37,22 +37,23 @@
 
     window.addEventListener('keydown', function (event) {
         stateBits |= keys[event.key];
-        //console.log(stateByte);
     }, false);
 
     window.addEventListener('keyup', function (event) {
-        stateBits ^= keys[event.key];
-        //console.log(stateByte);
+        stateBits = stateBits & keys[event.key] ? stateBits ^ keys[event.key] : stateBits;
     }, false);
-
+    var boundaries = [{x:0, y:0, w:1000, h:10},{x:0,y:10,w:10,h:980},{x:0,y:990,w:1000,h:10},{x:990,y:10,w:10,h:990}]
     var obj = genObj(100,100);
     var ropes = [genRopeSec(50, 50, 25)];
-    obj.rope = ropes[0];
-    var lastTime = Date.now();
+    //var lastTime = Date.now();
     function game_tick() {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        obj.update(stateBits, ctx);
-        //ropes.forEach(rope => rope.update(ctx));
+        obj.update();
+        boundaries.forEach(function(bound){
+            ctx.strokeStyle = 'red';
+            ctx.strokeRect(bound.x,bound.y,bound.w,bound.h);
+        });
+        ropes.forEach(rope => obj.rope != rope ? rope.update():null);
         requestAnimationFrame(game_tick);
     }
     game_tick();

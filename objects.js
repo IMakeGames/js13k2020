@@ -8,25 +8,33 @@ function genObj(initX, initY){
             t.x += modx;
             t.y += mody;
         },
-        update: function(byte, ctx){
+        update: function(){
             var t = this;
-            var yVar = 3*(((byte & 4) >> 2) - (byte & 1));
-            var xVar = 3*(((byte & 2) >> 1) - ((byte & 8) >> 3));
-
+            var yVar = 5*(((byte & 4) >> 2) - (byte & 1));
+            var xVar = 5*(((byte & 2) >> 1) - ((byte & 8) >> 3));
             t.x += xVar;
             t.y += yVar;
-            var tries = 26;
-            do{
-                t.rope.x = t.x;
-                t.rope.y = t.y;
-                tries--;
-            }while(!t.rope.solve(true) && tries > 0)
-            ctx.strokeStyle = "black"
-            ctx.font = '48px serif';
-            ctx.fillText('distance from origin: ' + t.rope.getDistToOrigin(), 50, 800);
-            ctx.strokeStyle = 'red';
-            ctx.strokeRect(t.x,t.y,50,50)
-            t.rope.draw();
+            if(stateBits & 16){
+                stateBits ^= 16;
+                if(t.rope){
+                    t.rope = null;
+                }else{
+                    t.rope = ropes.find(rope => Math.hypot(rope.x - t.x, rope.y - t.y) < 15) || null;
+                }
+            }
+            if(t.rope){
+                var childDist = t.rope.getDist();
+                var childForceX = (childDist.dist > 5 ? childDist.translateX : 0);
+                var childForceY = (childDist.dist > 5 ? childDist.translateY : 0);
+                t.x += childForceX;
+                t.y += childForceY;
+                t.rope.update(t.x, t.y);
+                // ctx.strokeStyle = "black"
+                // ctx.font = '48px serif';
+                // ctx.fillText('distance from origin: ' + t.rope.getDistToOrigin(), 50, 800);
+            }
+            ctx.strokeStyle = 'blue';
+            ctx.strokeRect(t.x,t.y,50,50);
         },
     }
 }
@@ -37,13 +45,24 @@ function genRopeSec(initX, initY, amount){
         fixedX: initX,
         y: initY,
         fixedY: initY,
-        amount: amount,
         child: amount > 0 ? genRopeSec(initX, initY, amount -1) : null,
+        update(fixedX, fixedY){
+            var t = this;
+            var tries = 11;
+            do{
+                if(fixedX){
+                    t.x = fixedX;
+                    t.y = fixedY;
+                }
+                tries--;
+            }while(!t.solve(true) && tries > 0)
+            t.draw();
+        },
         solve: function(bool){
             var t = this;
             if(t.child){
                 var dist = t.getDist();
-                if(dist.dist > 15){
+                if(dist.dist > 8){
                     bool = false;
                     t.x += dist.translateX;
                     t.y += dist.translateY;
@@ -62,7 +81,7 @@ function genRopeSec(initX, initY, amount){
             var xdiff = t.x - t.child.x;
             var ydiff = t.y - t.child.y;
             var dist = Math.hypot(xdiff, ydiff);
-            var scalDiff = (15 - dist) / dist;
+            var scalDiff = (8 - dist) / dist;
             scalDiff = scalDiff > 0 || isNaN(scalDiff) ? 0 : scalDiff;
             return {
                 dist: dist,
@@ -73,20 +92,20 @@ function genRopeSec(initX, initY, amount){
         draw: function(){
             var t = this;
             ctx.beginPath();
-            ctx.arc(this.x, this.y, 5,0, 2 * Math.PI, false);
+            ctx.arc(t.x, t.y, 5,0, 2 * Math.PI, false);
             ctx.lineWidth = 1;
             ctx.strokeStyle = '#003300';
             ctx.stroke();
             if(t.child) t.child.draw();
-        },
-        getDistToOrigin: function(total = 0){
-            var t = this;
-            if(t.child){
-                total += t.getDist().dist;
-                return t.child.getDistToOrigin(total);
-            }else{
-                return total;
-            }
         }
+        // getDistToOrigin: function(total = 0){
+        //     var t = this;
+        //     if(t.child){
+        //         total += t.getDist().dist;
+        //         return t.child.getDistToOrigin(total);
+        //     }else{
+        //         return total;
+        //     }
+        // }
     }
 }
