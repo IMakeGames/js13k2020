@@ -42,7 +42,7 @@
     window.addEventListener('keyup', function (event) {
         stateBits = stateBits & keys[event.key] ? stateBits ^ keys[event.key] : stateBits;
     }, false);
-    var boundaries = [{x:0, y:0, w:1000, h:10},{x:0,y:10,w:10,h:980},{x:0,y:990,w:1000,h:10},{x:990,y:10,w:10,h:990}]
+    var boundaries = [genHb(0,0,1000,10),genHb(0,10,10,980),genHb(0,990,1000,10),genHb(990,10,10,990)];
     var obj = genObj(100,100);
     var ropes = [genRopeSec(50, 50, 25)];
     //var lastTime = Date.now();
