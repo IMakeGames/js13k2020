@@ -43,17 +43,19 @@
         stateBits = stateBits & keys[event.key] ? stateBits ^ keys[event.key] : stateBits;
     }, false);
     var boundaries = [genHb(0,0,1000,10),genHb(0,10,10,980),genHb(0,990,1000,10),genHb(990,10,10,990)];
-    var obj = genObj(100,100);
-    var ropes = [genRopeSec(50, 50, 25)];
+    var playa = genPj(100,100);
+    var sockets = [genSocket(480,10,"origin","up",70), genSocket(480, 950, "end", "down")]
+    var ropes = [sockets[0].rope];
     //var lastTime = Date.now();
     function game_tick() {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        obj.update();
+        playa.update();
         boundaries.forEach(function(bound){
-            ctx.strokeStyle = 'red';
-            ctx.strokeRect(bound.x,bound.y,bound.w,bound.h);
+            ctx.fillStyle = 'red';
+            ctx.fillRect(bound.x,bound.y,bound.w,bound.h);
         });
-        ropes.forEach(rope => obj.rope != rope ? rope.update():null);
+        ropes.forEach(rope => !rope.attached ? rope.update():null);
+        sockets.forEach(socket => socket.update());
         requestAnimationFrame(game_tick);
     }
     game_tick();

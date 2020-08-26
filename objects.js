@@ -31,7 +31,7 @@ function genHb(x,y,w,h){
         }
     }
 }
-function genObj(initX, initY){
+function genPj(initX, initY){
     return {
         // x: initX,
         // y: initY,
@@ -48,6 +48,7 @@ function genObj(initX, initY){
             var xVar = 5*(((stateBits & 2) >> 1) - ((stateBits & 8) >> 3));
             t.hb.move(xVar, yVar);
             if(t.rope){
+                t.rope.attached = true;
                 var childDist = t.rope.getDist();
                 var childForceX = (childDist.dist > 5 ? childDist.translateX : 0);
                 var childForceY = (childDist.dist > 5 ? childDist.translateY : 0);
@@ -60,6 +61,11 @@ function genObj(initX, initY){
             if(stateBits & 16){
                 stateBits ^= 16;
                 if(t.rope){
+                    if(soc = sockets.find(socket => Math.hypot(socket.hb.x - t.hb.x, socket.hb.y - t.hb.y) < 40 && !socket.rope)){
+                        soc.rope = t.rope;
+                    }else{
+                        t.rope.attached = false;
+                    }
                     t.rope = null;
                 }else{
                     t.rope = ropes.find(rope => Math.hypot(rope.hb.x - t.hb.x, rope.hb.y - t.hb.y) < 15) || null;
@@ -73,8 +79,7 @@ function genObj(initX, initY){
 
 function genRopeSec(initX, initY, amount){
     return {
-        // x: initX,
-        // y: initY,
+        attached: false,
         hb: genHb(initX, initY, 2,2),
         fixedX: initX,
         fixedY: initY,
@@ -140,5 +145,30 @@ function genRopeSec(initX, initY, amount){
         //         return total;
         //     }
         // }
+    }
+}
+function genSocket(x,y,type,dir,amount){
+    var wh;
+    var conPt;
+    var add = dir == "left" || dir == "up" ? 40 : 0;
+    if(dir == "left" || dir == "right"){
+        wh = [40,20];
+        conPt = [x + add, y + 10]
+    }else{
+        wh = [20,40];
+        conPt = [x + 10, y + add]
+    }
+    return {
+        hb: genHb(x,y,wh[0],wh[1]),
+        type: type,
+        rope: type == "origin" ? genRopeSec(conPt[0],conPt[1],amount) : null,
+        update: function(){
+            var t = this;
+            if(t.type == "end" && t.rope){
+                t.rope.update(t.hb.x, t.hb.y);
+            }
+            ctx.strokeStyle = 'green';
+            ctx.strokeRect(t.hb.x,t.hb.y,t.hb.w,t.hb.h);
+        }
     }
 }
