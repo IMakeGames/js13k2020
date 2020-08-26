@@ -61,7 +61,7 @@ function genPj(initX, initY){
             if(stateBits & 16){
                 stateBits ^= 16;
                 if(t.rope){
-                    if(soc = sockets.find(socket => Math.hypot(socket.hb.x - t.hb.x, socket.hb.y - t.hb.y) < 40 && !socket.rope)){
+                    if(soc = sockets.find(socket => Math.hypot(socket.conPt[0] - t.hb.x, socket.conPt[1] - t.hb.y) < 30 && !socket.rope)){
                         soc.rope = t.rope;
                     }else{
                         t.rope.attached = false;
@@ -83,6 +83,7 @@ function genRopeSec(initX, initY, amount){
         hb: genHb(initX, initY, 2,2),
         fixedX: initX,
         fixedY: initY,
+        amount: amount,
         child: amount > 0 ? genRopeSec(initX, initY, amount -1) : null,
         update(fixedX, fixedY){
             var t = this;
@@ -147,7 +148,7 @@ function genRopeSec(initX, initY, amount){
         // }
     }
 }
-function genSocket(x,y,type,dir,amount){
+function genSocket(x,y,type,dir,amount,link){
     var wh;
     var conPt;
     var add = dir == "left" || dir == "up" ? 40 : 0;
@@ -161,14 +162,21 @@ function genSocket(x,y,type,dir,amount){
     return {
         hb: genHb(x,y,wh[0],wh[1]),
         type: type,
-        rope: type == "origin" ? genRopeSec(conPt[0],conPt[1],amount) : null,
+        link: link,
+        conPt: conPt,
+        rope: type == "origin" && amount > 0 ? genRopeSec(conPt[0],conPt[1],amount) : null,
         update: function(){
             var t = this;
             if(t.type == "end" && t.rope){
-                t.rope.update(t.hb.x, t.hb.y);
+                if(t.link && !t.link.rope){
+                    console.log("socket has link and not a rope. Generating rope");
+                    t.link.rope = genRopeSec(t.link.conPt[0], t.link.conPt[1], t.rope.amount);
+                    ropes.push(t.link.rope);
+                }
+                t.rope.update(t.conPt[0], t.conPt[1]);
             }
             ctx.strokeStyle = 'green';
             ctx.strokeRect(t.hb.x,t.hb.y,t.hb.w,t.hb.h);
-        }
+        },
     }
 }

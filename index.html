@@ -44,7 +44,8 @@
     }, false);
     var boundaries = [genHb(0,0,1000,10),genHb(0,10,10,980),genHb(0,990,1000,10),genHb(990,10,10,990)];
     var playa = genPj(100,100);
-    var sockets = [genSocket(480,10,"origin","up",70), genSocket(480, 950, "end", "down")]
+    var socket = genSocket(950, 480, "origin", "right",0);
+    var sockets = [genSocket(480,10,"origin","up",70), genSocket(480, 950, "end", "down"), genSocket(10, 480, "end", "left",0,socket), socket]
     var ropes = [sockets[0].rope];
     //var lastTime = Date.now();
     function game_tick() {
