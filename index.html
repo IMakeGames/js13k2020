@@ -13,7 +13,10 @@
 <script>
     //console.log("helo world");
     var main = document.getElementById("main");
-    var ctx = document.getElementById("main").getContext("2d");
+    var ctx = main.getContext("2d");
+    var mousePos = {x: 0, y: 0}
+    var isMousePressed = false;
+    var bounds = main.getBoundingClientRect();
     //Set all smoothing effects off
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
@@ -35,21 +38,43 @@
         'q': 16
     }
 
-    window.addEventListener('keydown', function (event) {
-        stateBits |= keys[event.key];
-    }, false);
+    //This here is keyboard input
+    // window.addEventListener('keydown', function (event) {
+    //     stateBits |= keys[event.key];
+    // }, false);
+    //
+    // window.addEventListener('keyup', function (event) {
+    //     stateBits = stateBits & keys[event.key] ? stateBits ^ keys[event.key] : stateBits;
+    // }, false);
 
-    window.addEventListener('keyup', function (event) {
-        stateBits = stateBits & keys[event.key] ? stateBits ^ keys[event.key] : stateBits;
-    }, false);
+    //This here is mouse input
+    main.addEventListener('mousedown', e => {
+        isMousePressed = true;
+        mousePos.x = 1000 * (e.pageX - bounds.left) / bounds.width;
+        mousePos.y = 1000 * (e.pageY - bounds.top) / bounds.height;
+    });
+    main.addEventListener('mouseup', e => {
+        isMousePressed = false;
+    });
+    main.addEventListener('mousemove', e=> {
+        if(isMousePressed){
+            bounds = main.getBoundingClientRect();
+            mousePos.x = 1000 * (e.pageX - bounds.left) / bounds.width;
+            mousePos.y = 1000 * (e.pageY - bounds.top) / bounds.height;
+        }
+    });
     var boundaries = [genHb(0,0,1000,10),genHb(0,10,10,980),genHb(0,990,1000,10),genHb(990,10,10,990)];
     var playa = genPj(100,100);
     var socket = genSocket(950, 480, "origin", "right",0);
     var sockets = [genSocket(480,10,"origin","up",70), genSocket(480, 950, "end", "down"), genSocket(10, 480, "end", "left",0,socket), socket]
     var ropes = [sockets[0].rope];
+    var munchers = [genMuncher(850,100)]
     //var lastTime = Date.now();
     function game_tick() {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.fillStyle = "black"
+        ctx.font = '25px serif';
+        ctx.fillText('mouse pos while pressed: {x: ' + mousePos.x + ", y: " + mousePos.y +"}", 50, 800);
         playa.update();
         boundaries.forEach(function(bound){
             ctx.fillStyle = 'red';
