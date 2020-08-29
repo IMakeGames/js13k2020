@@ -66,8 +66,7 @@ function genPj(initX, initY){
                 // ctx.font = '48px serif';
                 // ctx.fillText('distance from origin: ' + t.rope.getDistToOrigin(), 50, 800);
             }
-            if(stateBits & 16){
-                stateBits ^= 16;
+            if(resolveShortClick){
                 if(t.rope){
                     if(soc = sockets.find(socket => getDist(t.hb,{x:socket.conPt[0],y:socket.conPt[1]}).dist < 30 && !socket.rope)){
                         soc.rope = t.rope;
@@ -75,10 +74,26 @@ function genPj(initX, initY){
                         t.rope.attached = false;
                     }
                     t.rope = null;
+                }else if(rop = ropes.find(rope => getDist(t.hb, rope.hb).dist < 15)){
+                    t.rope = rop
                 }else{
-                    t.rope = ropes.find(rope => getDist(t.hb, rope.hb).dist < 15) || null;
+
                 }
+                resolveShortClick = false;
             }
+            // if(stateBits & 16){
+            //     stateBits ^= 16;
+            //     if(t.rope){
+            //         if(soc = sockets.find(socket => getDist(t.hb,{x:socket.conPt[0],y:socket.conPt[1]}).dist < 30 && !socket.rope)){
+            //             soc.rope = t.rope;
+            //         }else{
+            //             t.rope.attached = false;
+            //         }
+            //         t.rope = null;
+            //     }else{
+            //         t.rope = ropes.find(rope => getDist(t.hb, rope.hb).dist < 15) || null;
+            //     }
+            // }
             ctx.strokeStyle = 'blue';
             ctx.strokeRect(t.hb.x,t.hb.y,t.hb.w,t.hb.h);
         },

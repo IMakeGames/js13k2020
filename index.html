@@ -17,6 +17,11 @@
     var mousePos = {x: 0, y: 0}
     var isMousePressed = false;
     var bounds = main.getBoundingClientRect();
+    var lastMouseUp = 0;
+    var lastMouseDown = 0;
+    var cooldownFCounter = 0;
+    var resolveShortClick = 0;
+    var lastClickType = null;
     //Set all smoothing effects off
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
@@ -47,20 +52,25 @@
     //     stateBits = stateBits & keys[event.key] ? stateBits ^ keys[event.key] : stateBits;
     // }, false);
 
-    //This here is mouse input
     main.addEventListener('mousedown', e => {
         isMousePressed = true;
-        mousePos.x = 1000 * (e.pageX - bounds.left) / bounds.width;
-        mousePos.y = 1000 * (e.pageY - bounds.top) / bounds.height;
+        mousePos.x = 1000*e.offsetX/main.getBoundingClientRect().width;
+        mousePos.y = 1000*e.offsetY/main.getBoundingClientRect().bottom;
+        lastMouseDown = Date.now();
     });
     main.addEventListener('mouseup', e => {
         isMousePressed = false;
+        if(Date.now() - lastMouseDown < 117){
+            console.log("short click");
+            resolveShortClick = true;
+        }else{
+            lastMouseUp = Date.now();
+        }
     });
     main.addEventListener('mousemove', e=> {
         if(isMousePressed){
-            bounds = main.getBoundingClientRect();
-            mousePos.x = 1000 * (e.pageX - bounds.left) / bounds.width;
-            mousePos.y = 1000 * (e.pageY - bounds.top) / bounds.height;
+            mousePos.x = 1000*e.offsetX/main.getBoundingClientRect().width;
+            mousePos.y = 1000*e.offsetY/main.getBoundingClientRect().bottom;
         }
     });
     var boundaries = [genHb(0,0,1000,10),genHb(0,10,10,980),genHb(0,990,1000,10),genHb(990,10,10,990)];
@@ -75,6 +85,7 @@
         ctx.fillStyle = "black"
         ctx.font = '25px serif';
         ctx.fillText('mouse pos while pressed: {x: ' + mousePos.x + ", y: " + mousePos.y +"}", 50, 800);
+        //ctx.fillText('bounds: {left: ' +main.getBoundingClientRect().left + ", y: " + main.getBoundingClientRect().width +"}", 50, 850);
         playa.update();
         boundaries.forEach(function(bound){
             ctx.fillStyle = 'red';
