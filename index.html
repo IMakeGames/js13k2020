@@ -11,17 +11,13 @@
 </style>
 <script src="objects.js"></script>
 <script>
-    //console.log("helo world");
     var main = document.getElementById("main");
     var ctx = main.getContext("2d");
     var mousePos = {x: 0, y: 0}
     var isMousePressed = false;
-    var bounds = main.getBoundingClientRect();
     var lastMouseUp = 0;
     var lastMouseDown = 0;
-    var cooldownFCounter = 0;
     var resolveShortClick = 0;
-    var lastClickType = null;
     //Set all smoothing effects off
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
@@ -33,8 +29,6 @@
     ctx.fillStyle = 'green';
     ctx.lineWidth = 5;
 
-    var stateBits = 0;
-    //ctx.fillRect(0,0,1000,1000);
     let keys = {
         'w': 1,
         'd': 2,
@@ -42,15 +36,6 @@
         'a': 8,
         'q': 16
     }
-
-    //This here is keyboard input
-    // window.addEventListener('keydown', function (event) {
-    //     stateBits |= keys[event.key];
-    // }, false);
-    //
-    // window.addEventListener('keyup', function (event) {
-    //     stateBits = stateBits & keys[event.key] ? stateBits ^ keys[event.key] : stateBits;
-    // }, false);
 
     main.addEventListener('mousedown', e => {
         isMousePressed = true;
@@ -85,7 +70,7 @@
         ctx.fillStyle = "black"
         ctx.font = '25px serif';
         ctx.fillText('mouse pos while pressed: {x: ' + mousePos.x + ", y: " + mousePos.y +"}", 50, 800);
-        //ctx.fillText('bounds: {left: ' +main.getBoundingClientRect().left + ", y: " + main.getBoundingClientRect().width +"}", 50, 850);
+        ctx.fillText('mc position x: ' + playa.hb.x + ", y: " + playa.hb.y +"}", 50, 850);
         playa.update();
         boundaries.forEach(function(bound){
             ctx.fillStyle = 'red';

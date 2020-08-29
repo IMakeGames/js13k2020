@@ -33,40 +33,32 @@ function genHb(x,y,w,h){
 }
 function genPj(initX, initY){
     return {
-        // x: initX,
-        // y: initY,
+        dashX: 0,
+        dashY: 0,
+        dashFrames: 0,
+        dashCoolDown: 0,
         hb: genHb(initX, initY, 50, 50),
         rope: null,
-        setPos: function(modX, modY){
-            var t = this;
-            t.x += modx;
-            t.y += mody;
-        },
         update: function(){
             var t = this;
-            var xVar = 0;
-            var yVar = 0;
-            if(isMousePressed){
+            var xVar = t.dashX;
+            var yVar = t.dashY;
+            if(isMousePressed && !t.dashFrames){
                 var xDiff = mousePos.x - t.hb.x ;
                 var yDiff = mousePos.y - t.hb.y ;
-                xVar = 5*(Math.abs(xDiff) > 200 ? 1*signUnit(xDiff) : xDiff/200);
-                yVar = 5*(Math.abs(yDiff) > 200 ? 1*signUnit(yDiff) : yDiff/200);
+                xVar = calcVar(xDiff)
+                yVar = calcVar(yDiff)
+                if(t.rope){
+                    t.rope.attached = true;
+                    var childDist = getDist(t.hb, t.rope.hb);
+                    xVar += (childDist.dist > 5 ? childDist.translateX : 0);
+                    yVar += (childDist.dist > 5 ? childDist.translateY : 0);
+                }
             }
-            // var yVar = 5*(((stateBits & 4) >> 2) - (stateBits & 1));
-            // var xVar = 5*(((stateBits & 2) >> 1) - ((stateBits & 8) >> 3));
             t.hb.move(xVar, yVar);
-            if(t.rope){
-                t.rope.attached = true;
-                var childDist = getDist(t.hb, t.rope.hb);
-                var childForceX = (childDist.dist > 5 ? childDist.translateX : 0);
-                var childForceY = (childDist.dist > 5 ? childDist.translateY : 0);
-                t.hb.move(childForceX, childForceY);
-                t.rope.update(t.hb.x, t.hb.y);
-                // ctx.strokeStyle = "black"
-                // ctx.font = '48px serif';
-                // ctx.fillText('distance from origin: ' + t.rope.getDistToOrigin(), 50, 800);
-            }
-            if(resolveShortClick){
+            if(t.rope) t.rope.update(t.hb.x, t.hb.y);
+            if(resolveShortClick && !t.dashFrames){
+                console.log("resolving short click: dash dd: "+t.dashCoolDown+"dash on cooldown? " + !t.dashCoolDown + "time diff: " + (Date.now() - lastMouseUp));
                 if(t.rope){
                     if(soc = sockets.find(socket => getDist(t.hb,{x:socket.conPt[0],y:socket.conPt[1]}).dist < 30 && !socket.rope)){
                         soc.rope = t.rope;
@@ -76,32 +68,44 @@ function genPj(initX, initY){
                     t.rope = null;
                 }else if(rop = ropes.find(rope => getDist(t.hb, rope.hb).dist < 15)){
                     t.rope = rop
-                }else{
-
+                }else if(!t.dashCoolDown && (Date.now() - lastMouseUp < 270)){
+                    console.log("dash activated")
+                   var distFromMouse = getDist(mousePos, t.hb);
+                   t.dashX = distFromMouse.normalX*20;
+                   t.dashY = distFromMouse.normalY*20;
+                   t.dashFrames = 10;
                 }
-                resolveShortClick = false;
             }
-            // if(stateBits & 16){
-            //     stateBits ^= 16;
-            //     if(t.rope){
-            //         if(soc = sockets.find(socket => getDist(t.hb,{x:socket.conPt[0],y:socket.conPt[1]}).dist < 30 && !socket.rope)){
-            //             soc.rope = t.rope;
-            //         }else{
-            //             t.rope.attached = false;
-            //         }
-            //         t.rope = null;
-            //     }else{
-            //         t.rope = ropes.find(rope => getDist(t.hb, rope.hb).dist < 15) || null;
-            //     }
-            // }
+
+            resolveShortClick = false;
+
+            if(t.dashFrames){
+                t.dashFrames--;
+                if(!t.dashFrames){
+                    t.dashX = 0;
+                    t.dashY = 0;
+                    t.dashCoolDown = 50;
+                }
+            }
+            if(t.dashCoolDown) t.dashCoolDown--;
+
             ctx.strokeStyle = 'blue';
             ctx.strokeRect(t.hb.x,t.hb.y,t.hb.w,t.hb.h);
         },
     }
 }
 
+function calcVar(diff){
+    var vari= absolute(diff) <= 8 ? 0 : (5*(absolute(diff) > 200 ? 1*signUnit(diff) : diff/200));
+    return !vari || absolute(vari) > 2 ? vari : 2*signUnit(diff);
+}
+
 function signUnit(number){
     return number/Math.abs(number);
+}
+
+function absolute(number){
+    return Math.abs(number);
 }
 function genRopeSec(initX, initY, amount){
     return {
@@ -154,15 +158,6 @@ function genRopeSec(initX, initY, amount){
             ctx.stroke();
             if(t.child) t.child.draw();
         }
-        // getDistToOrigin: function(total = 0){
-        //     var t = this;
-        //     if(t.child){
-        //         total += t.getDist().dist;
-        //         return t.child.getDistToOrigin(total);
-        //     }else{
-        //         return total;
-        //     }
-        // }
     }
 }
 function genSocket(x,y,type,dir,amount,link){
