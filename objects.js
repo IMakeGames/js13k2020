@@ -1,19 +1,23 @@
 function genHb(x,y,w,h){
     return{
+        mag: 0,
+        ang: 0,
         x: x,
         y: y,
         w: w,
         h: h,
-        move: function(varX, varY){
+        move: function(){
             var t = this;
+            var xVar = Math.cos(t.ang)*t.mag;
+            var yVar = Math.sin(t.ang)*t.mag;
             var a = {...t}, b = {...t};
-            a.x += varX - w/2;
-            b.y += varY - h/2;
+            a.x += xVar - w/2;
+            b.y += yVar - h/2;
             if(!boundaries.find(bound => bound.checkColission(a))){
-                t.x += varX;
+                t.x += xVar;
             }
             if(!boundaries.find(bound => bound.checkColission(b))){
-                t.y += varY;
+                t.y += yVar;
             }
         },
         checkColission: function(hb2){
@@ -39,55 +43,49 @@ function genPj(initX, initY){
     var stretchMinDist = 6;
     var stretchMaxDist = 10;
     return {
-        vel: {m: 0, ang: 0},
         dashFrames: 0,
         dashCoolDown: 0,
         hb: genHb(initX, initY, 20, 20),
         rope: null,
         update: function(){
-            var t = this;
-            t.vel.m -= t.dashFrames ? t.vel.m*dashAcc/dashMaxVel : t.vel.m*mouseAcc/maxVel;
+            let t = this;
+            t.hb.mag -= t.dashFrames ? t.hb.mag*dashAcc/dashMaxVel : t.hb.mag*mouseAcc/maxVel;
             if(!t.dashFrames && t.dashCoolDown < (totalDashCd - afterDashMovCd) && isMousePressed){
-                var mouseDist = getDist(mousePos,t.hb);
-                t.vel.m+= mouseDist.dist > 100 ? mouseAcc : (mouseDist.dist/100)*mouseAcc;
-                t.vel.ang = mouseDist.angle;
-            }else if(t.dashFrames){
-                t.vel.m += dashAcc;
+                let mouseDist = getDist(mousePos,t.hb);
+                t.hb.mag += mouseDist.dist > 100 ? mouseAcc : (mouseDist.dist/100)*mouseAcc;
+                t.hb.ang = mouseDist.angle;
+            }
+            if(t.dashFrames){
+                t.hb.mag += dashAcc;
             }
             if(t.rope){
                 t.rope.attached = true;
-                var childDist = getDist(t.hb, t.rope.hb);
-                var holdPoint = {x: t.hb.x - childDist.normalX * holdRadius, y: t.hb.y - childDist.normalY * holdRadius}
-                var realChildDist = getDist(holdPoint, t.rope.hb);
-                var newM = realChildDist.dist > stretchMinDist ? (realChildDist.dist - stretchMinDist)*maxVel/stretchMaxDist : 0;
-                var xvecResult =  Math.cos(t.vel.ang)*t.vel.m - Math.cos(childDist.angle)*newM;
-                var yvecResult =  Math.sin(t.vel.ang)*t.vel.m - Math.sin(childDist.angle)*newM;
-                var newAng = Math.atan2(yvecResult,xvecResult) || 0;
-                ctx.fillStyle = "black"
-                ctx.font = '25px serif';
-                ctx.fillText('mouse angle: ' + t.vel.ang.toFixed(3) + ", new angle: " + newAng.toFixed(3), 50, 800);
-                ctx.fillText('vel magnitude: ' + t.vel.m.toFixed(3) + ", new magnitude " + newM.toFixed(3), 50, 850);
-                t.vel.ang = newAng;
-                t.vel.m -= newM;
-                if(t.vel.m < 0) t.vel.m *= -4;
+                let holdPoint =t.getHoldPoint();
+                let realChildDist = getDist(holdPoint, t.rope.hb);
+                let newM = realChildDist.dist > stretchMinDist ? (realChildDist.dist - stretchMinDist)*maxVel/stretchMaxDist : 0;
+                let xvecResult =  Math.cos(t.hb.ang)*t.hb.mag - Math.cos(realChildDist.angle)*newM;
+                let yvecResult =  Math.sin(t.hb.ang)*t.hb.mag - Math.sin(realChildDist.angle)*newM;
+                let newAng = Math.atan2(yvecResult,xvecResult) || 0;
+                t.hb.ang = newAng;
+                t.hb.mag -= newM;
+                if(t.hb.mag < 0) t.hb.mag *= -4;
                 t.rope.update(holdPoint);
             }
-            var xVar = Math.cos(t.vel.ang)*t.vel.m;
-            var yVar = Math.sin(t.vel.ang)*t.vel.m;
-            t.hb.move(xVar, yVar);
+            t.hb.move();
             if(resolveShortClick && !t.dashFrames){
                 if(t.rope){
-                    // if(soc = sockets.find(socket => getDist(t.hb,{x:socket.conPt[0],y:socket.conPt[1]}).dist < 30 && !socket.rope)){
-                    //     soc.rope = t.rope;
-                    // }else{
-                    //     t.rope.attached = false;
-                    // }
-                    // t.rope = null;
+                    if(soc = sockets.find(socket => getDist(t.hb,{x:socket.conPt[0],y:socket.conPt[1]}).dist < 30 && !socket.rope)){
+                        soc.rope = t.rope;
+                    }else{
+                        t.rope.attached = false;
+                    }
+                    t.rope = null;
                 }else if(rop = ropes.find(rope => getDist(t.hb, rope.hb).dist < 50)){
                     t.rope = getDist(rop.hb, mousePos).dist < 10 ? rop : null;
+                    if(t.rope) t.rope.update(t.getHoldPoint());
                 }else if(!t.dashCoolDown && (Date.now() - lastMouseUp < 270)){
-                   var distFromMouse = getDist(mousePos, t.hb);
-                   t.vel.ang = distFromMouse.angle;
+                   let distFromMouse = getDist(mousePos, t.hb);
+                   t.hb.ang = distFromMouse.angle;
                    // t.dashX = distFromMouse.normalX*20;
                    // t.dashY = distFromMouse.normalY*20;
                    t.dashFrames = totalDashFrames;
@@ -114,13 +112,19 @@ function genPj(initX, initY){
             ctx.strokeStyle = 'purple';
             ctx.stroke();
         },
+        getHoldPoint: function(){
+            let t = this;
+            let childDist = getDist(t.hb, t.rope.hb);
+            return {x: t.hb.x - childDist.normalX * holdRadius, y: t.hb.y - childDist.normalY * holdRadius}
+        }
     }
 }
 
+
+//TODO Delete these functions
 function signUnit(number){
     return number/Math.abs(number);
 }
-
 var absolute = (number) => Math.abs(number);
 
 function genRopeSec(initX, initY, amount){
@@ -135,7 +139,7 @@ function genRopeSec(initX, initY, amount){
         child: amount > 0 ? genRopeSec(initX, initY, amount -1) : null,
         update(fixedHb){
             var t = this;
-            var tries = 11;
+            var tries = 21;
             do{
                 if(fixedHb){
                     t.hb.x = fixedHb.x;
@@ -146,13 +150,13 @@ function genRopeSec(initX, initY, amount){
             t.draw();
         },
         solve: function(bool){
-            var t = this;
+            let t = this;
             if(munch = munchers.find(muncher => muncher.state == "idle" && getDist(t.hb, muncher.hb).dist < 20)){
                 munch.food = t;
                 munch.state = "feed";
             }
             if(t.child){
-                var dist = getDist(t.hb,t.child.hb);
+                let dist = getDist(t.hb,t.child.hb);
                 if(dist.dist > 8){
                     bool = false;
                     t.hb.x += dist.translateX;
@@ -168,7 +172,7 @@ function genRopeSec(initX, initY, amount){
             }
         },
         draw: function(){
-            var t = this;
+            let t = this;
             ctx.beginPath();
             ctx.arc(t.hb.x, t.hb.y, 5,0, 2 * Math.PI, false);
             ctx.lineWidth = 1;
@@ -179,9 +183,9 @@ function genRopeSec(initX, initY, amount){
     }
 }
 function genSocket(x,y,type,dir,amount,link){
-    var wh;
-    var conPt;
-    var add = dir == "left" || dir == "up" ? 40 : 0;
+    let wh;
+    let conPt;
+    let add = dir == "left" || dir == "up" ? 40 : 0;
     if(dir == "left" || dir == "right"){
         wh = [40,20];
         conPt = [x + add, y + 10]
@@ -196,7 +200,7 @@ function genSocket(x,y,type,dir,amount,link){
         conPt: conPt,
         rope: type == "origin" && amount > 0 ? genRopeSec(conPt[0],conPt[1],amount) : null,
         update: function(){
-            var t = this;
+            let t = this;
             if(t.type == "end" && t.rope){
                 if(t.link && !t.link.rope){
                     t.link.rope = genRopeSec(t.link.conPt[0], t.link.conPt[1], t.rope.amount);
@@ -216,8 +220,8 @@ function genMuncher(x,y){
         food: null,
         state: "idle",
         update: function(){
-            var t = this;
-            var playerDistance = getDist(t.hb,playa.hb);
+            let t = this;
+            let playerDistance = getDist(t.hb,playa.hb);
             switch(state){
                 case "idle":
                     if(playerDistance.dist < 40){
@@ -232,7 +236,7 @@ function genMuncher(x,y){
                     }
                     break;
                 case "feed":
-                    var foodDist = getDist(t.hb,t.food);
+                    let foodDist = getDist(t.hb,t.food);
                     if(foodDist.dist > 5){
                         t.hb.x += foodDist.normalX;
                         t.hb.y += foodDist.normalY;
@@ -245,11 +249,11 @@ function genMuncher(x,y){
 }
 
 var getDist = (hb1, hb2) => {
-    var xdiff = hb1.x - hb2.x;
-    var ydiff = hb1.y - hb2.y;
-    var dist = Math.hypot(xdiff, ydiff);
-    var scalDiff = (8 - dist) / dist;
-    var angle = Math.atan2(ydiff,xdiff) || 0;
+    let xdiff = hb1.x - hb2.x;
+    let ydiff = hb1.y - hb2.y;
+    let dist = Math.hypot(xdiff, ydiff);
+    let scalDiff = (8 - dist) / dist;
+    let angle = Math.atan2(ydiff,xdiff) || 0;
     scalDiff = scalDiff > 0 || isNaN(scalDiff) ? 0 : scalDiff;
     return {
         dist: dist,
