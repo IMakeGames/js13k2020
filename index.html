@@ -18,6 +18,10 @@
     var lastMouseUp = 0;
     var lastMouseDown = 0;
     var resolveShortClick = 0;
+    var mouseAcc = 1;
+    var dashAcc = 4;
+    var dashMaxVel = 32;
+    var maxVel = 8;
     //Set all smoothing effects off
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
@@ -61,16 +65,16 @@
     var boundaries = [genHb(0,0,1000,10),genHb(0,10,10,980),genHb(0,990,1000,10),genHb(990,10,10,990)];
     var playa = genPj(100,100);
     var socket = genSocket(950, 480, "origin", "right",0);
-    var sockets = [genSocket(480,10,"origin","up",70), genSocket(480, 950, "end", "down"), genSocket(10, 480, "end", "left",0,socket), socket]
+    var sockets = [genSocket(480,10,"origin","up",30), genSocket(480, 950, "end", "down"), genSocket(10, 480, "end", "left",0,socket), socket]
     var ropes = [sockets[0].rope];
     var munchers = [genMuncher(850,100)]
     //var lastTime = Date.now();
     function game_tick() {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        ctx.fillStyle = "black"
-        ctx.font = '25px serif';
-        ctx.fillText('mouse pos while pressed: {x: ' + mousePos.x + ", y: " + mousePos.y +"}", 50, 800);
-        ctx.fillText('mc position x: ' + playa.hb.x + ", y: " + playa.hb.y +"}", 50, 850);
+        // ctx.fillStyle = "black"
+        // ctx.font = '25px serif';
+        // ctx.fillText('mouse pos while pressed: {x: ' + mousePos.x + ", y: " + mousePos.y +"}", 50, 800);
+        // ctx.fillText('mc position x: ' + playa.hb.x + ", y: " + playa.hb.y +"}", 50, 850);
         playa.update();
         boundaries.forEach(function(bound){
             ctx.fillStyle = 'red';
