@@ -33,14 +33,6 @@
     ctx.fillStyle = 'green';
     ctx.lineWidth = 5;
 
-    let keys = {
-        'w': 1,
-        'd': 2,
-        's': 4,
-        'a': 8,
-        'q': 16
-    }
-
     main.addEventListener('mousedown', e => {
         isMousePressed = true;
         mousePos.x = 1000*e.offsetX/main.getBoundingClientRect().width;
@@ -62,7 +54,7 @@
             mousePos.y = 1000*e.offsetY/main.getBoundingClientRect().bottom;
         }
     });
-    var boundaries = [genHb(0,0,1000,10),genHb(0,10,10,980),genHb(0,990,1000,10),genHb(990,10,10,990)];
+    var boundaries = [genHb(0,0,1000,10),genHb(0,10,10,980),genHb(0,990,1000,10),genHb(990,10,10,980)];
     var playa = genPj(100,100);
     var socket = genSocket(950, 480, "origin", "right",0);
     var sockets = [genSocket(480,10,"origin","up",30), genSocket(480, 950, "end", "down"), genSocket(10, 480, "end", "left",0,socket), socket]

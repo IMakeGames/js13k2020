@@ -7,19 +7,20 @@ function genHb(x,y,w,h){
         w: w,
         h: h,
         move: function(){
-            var t = this;
-            var xVar = Math.cos(t.ang)*t.mag;
-            var yVar = Math.sin(t.ang)*t.mag;
-            var a = {...t}, b = {...t};
+            let t = this;
+            let xVar = Math.cos(t.ang)*t.mag;
+            let yVar = Math.sin(t.ang)*t.mag;
+            let a = {...t}, b = {...t};
             a.x += xVar - w/2;
             b.y += yVar - h/2;
-            if(!boundaries.find(bound => bound.checkColission(a))){
+            if(a.x > 10 && a.x+t.w < 990){
                 t.x += xVar;
             }
-            if(!boundaries.find(bound => bound.checkColission(b))){
+            if(b.y > 10 && b.y+t.h < 990){
                 t.y += yVar;
             }
         },
+        //TODO: Chekc if necesarry to keep this function
         checkColission: function(hb2){
             var t = this;
             if(t.y + t.h <= hb2.y){
@@ -36,12 +37,13 @@ function genHb(x,y,w,h){
     }
 }
 function genPj(initX, initY){
-    var holdRadius = 22;
-    var afterDashMovCd = 10;
-    var totalDashCd = 50;
-    var totalDashFrames = 10;
-    var stretchMinDist = 6;
-    var stretchMaxDist = 10;
+    //TODO: pass numbers directly when quantities have been decided.
+    let holdRadius = 22;
+    let afterDashMovCd = 10;
+    let totalDashCd = 50;
+    let totalDashFrames = 10;
+    let stretchMinDist = 6;
+    let stretchMaxDist = 10;
     return {
         dashFrames: 0,
         dashCoolDown: 0,
@@ -86,8 +88,6 @@ function genPj(initX, initY){
                 }else if(!t.dashCoolDown && (Date.now() - lastMouseUp < 270)){
                    let distFromMouse = getDist(mousePos, t.hb);
                    t.hb.ang = distFromMouse.angle;
-                   // t.dashX = distFromMouse.normalX*20;
-                   // t.dashY = distFromMouse.normalY*20;
                    t.dashFrames = totalDashFrames;
                 }
             }
@@ -128,8 +128,9 @@ function signUnit(number){
 var absolute = (number) => Math.abs(number);
 
 function genRopeSec(initX, initY, amount){
-    var hb = genHb(initX, initY, 2, 2);
-    //boundaries.push(hb);
+    let hb = genHb(initX, initY, 2, 2);
+    let linkDistRestriction = 8;
+//    links.push(hb);
     return {
         attached: false,
         hb: hb,
@@ -157,12 +158,20 @@ function genRopeSec(initX, initY, amount){
             }
             if(t.child){
                 let dist = getDist(t.hb,t.child.hb);
-                if(dist.dist > 8){
+                if(dist.dist > linkDistRestriction){
                     bool = false;
                     t.hb.x += dist.translateX;
                     t.hb.y += dist.translateY;
                     t.child.hb.x -= dist.translateX;
                     t.child.hb.y -= dist.translateY;
+                }
+                let distMc = getDist(t.hb, playa.hb);
+                if(distMc.dist < t.hb.w/2 + playa.hb.w/2){
+                    bool = false;
+                    t.hb.x += -5*distMc.translateX;
+                    t.hb.y += -5*distMc.translateY;
+                    //TODO: Make push when dashing more natural
+                    playa.hb.mag = playa.dashFrames ? -dashMaxVel : 0;
                 }
                 return t.child.solve(bool);
             }else{
@@ -182,7 +191,7 @@ function genRopeSec(initX, initY, amount){
         },
     }
 }
-function genSocket(x,y,type,dir,amount,link){
+function genSocket(x,y,type,dir,amount,connection){
     let wh;
     let conPt;
     let add = dir == "left" || dir == "up" ? 40 : 0;
@@ -196,15 +205,15 @@ function genSocket(x,y,type,dir,amount,link){
     return {
         hb: genHb(x,y,wh[0],wh[1]),
         type: type,
-        link: link,
+        connection: connection,
         conPt: conPt,
         rope: type == "origin" && amount > 0 ? genRopeSec(conPt[0],conPt[1],amount) : null,
         update: function(){
             let t = this;
             if(t.type == "end" && t.rope){
-                if(t.link && !t.link.rope){
-                    t.link.rope = genRopeSec(t.link.conPt[0], t.link.conPt[1], t.rope.amount);
-                    ropes.push(t.link.rope);
+                if(t.connection && !t.connection.rope){
+                    t.connection.rope = genRopeSec(t.connection.conPt[0], t.connection.conPt[1], t.rope.amount);
+                    ropes.push(t.connection.rope);
                 }
                 t.rope.update(t.conPt[0], t.conPt[1]);
             }
@@ -249,6 +258,7 @@ function genMuncher(x,y){
 }
 
 var getDist = (hb1, hb2) => {
+    //TODO elminite unused properties from return object.
     let xdiff = hb1.x - hb2.x;
     let ydiff = hb1.y - hb2.y;
     let dist = Math.hypot(xdiff, ydiff);
