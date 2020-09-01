@@ -54,17 +54,13 @@ function genPj(initX, initY){
             //No negative magnitudes. If magnitude is negative, angle is reversed and magnitude is absoluted
             if(t.hb.mag < -1){
                 t.hb.mag *= -1;
-                t.hb.ang = t.hb.ang > 0 ? t.hb.ang - Math.PI : Math.PI - t.hb.ang;
+                t.hb.ang = opAngle(t.hb.ang)
             }
             t.hb.mag -= t.dashFrames ? t.hb.mag*dashAcc/dashMaxVel : t.hb.mag*mouseAcc/maxVel;
             if(!t.dashFrames && t.dashCoolDown < (totalDashCd - afterDashMovCd) && isMousePressed){
                 let mouseDist = getDist(mousePos,t.hb);
                 t.hb.mag += mouseDist.dist > 100 ? mouseAcc : (mouseDist.dist/100)*mouseAcc;
                 t.hb.ang = mouseDist.angle;
-                ctx.fillStyle = "black"
-                ctx.font = '25px serif';
-                ctx.fillText('magnitude: ' + t.hb.mag.toFixed(3), 50, 830);
-                // t.hb.ang = mouseDist.angle;
             }
             if(t.dashFrames){
                 t.hb.mag += dashAcc;
@@ -112,7 +108,7 @@ function genPj(initX, initY){
             if(t.dashCoolDown) t.dashCoolDown--;
 
             ctx.strokeStyle = 'blue';
-            ctx.strokeRect(t.hb.x - 10,t.hb.y - 10,t.hb.w,t.hb.h);
+            ctx.strokeRect(t.hb.x - t.hb.w/2,t.hb.y - t.hb.w/2,t.hb.w,t.hb.h);
             ctx.strokeStyle = 'red';
             ctx.strokeRect(t.hb.x - 1,t.hb.y - 1,1,1);
             ctx.beginPath();
@@ -125,6 +121,11 @@ function genPj(initX, initY){
             let t = this;
             let childDist = getDist(t.hb, t.rope.hb);
             return {x: t.hb.x - childDist.normalX * holdRadius, y: t.hb.y - childDist.normalY * holdRadius}
+        },
+        impact: function(enemyAngle){
+            this.hb.ang = enemyAngle;
+            this.hb.ang = opAngle(this.hb.ang);
+            this.dashFrames = totalDashFrames/2;
         }
     }
 }
@@ -136,8 +137,10 @@ function signUnit(number){
 }
 var absolute = (number) => Math.abs(number);
 
+var opAngle = (ang) => ang > 0 ? ang - Math.PI : Math.PI - ang;
+
 function genRopeSec(initX, initY, amount){
-    let hb = genHb(initX, initY, 2, 2);
+    let hb = genHb(initX, initY, 5, 5);
     let linkDistConstraint = 12;
 //    links.push(hb);
     return {
@@ -246,20 +249,34 @@ function genMuncher(x,y){
         hb: genHb(x,y,30,30),
         food: null,
         state: "idle",
+        frameCounter: 0,
         update: function(){
             let t = this;
+            let fillText = "";
+            if(t.frameCounter > 0)t.frameCounter--;
             let playerDistance = getDist(t.hb,playa.hb);
-            switch(state){
+            t.hb.mag -= t.hb.mag*mouseAcc/(maxVel*0.8);
+            ctx.fillStyle = 'orange';
+            ctx.font = '40px Extrabold sans-serif';
+            switch(t.state){
                 case "idle":
-                    if(playerDistance.dist < 40){
-                        t.state = "attack";
+                    if(t.frameCounter > 0){
+                        fillText = "?";
+                    }
+                    if(playerDistance.dist < 100){
+                        t.changeState("attack");
                     }
                     break;
                 case "attack":
-                    t.hb.x += getDist.normalX*2;
-                    t.hb.y += getDist.normalY*2;
-                    if(playerDistance.dist > 60){
-                        t.state = "idle"
+                    if(t.frameCounter > 0){
+                        fillText = "!";
+                    }
+                    if(t.frameCounter < 15){
+                        t.hb.mag -= mouseAcc;
+                        t.hb.ang = playerDistance.angle;
+                        if(playerDistance.dist > 200){
+                            t.changeState("idle");
+                        }
                     }
                     break;
                 case "feed":
@@ -270,7 +287,35 @@ function genMuncher(x,y){
                     }else{
                         //here the mf eats the shit
                     }
+                    break;
+                case "cooldown":
+                    if(!t.frameCounter){
+                        t.state = "attack";
+                    }
             }
+            let impactDist = (playa.hb.w + t.hb.w)/2;
+            if(playerDistance.dist <= impactDist){
+                playa.impact(playerDistance.angle);
+                if(t.state != "eating" && t.state !="sleeping"){
+                    t.hb.mag = 3;
+                    this.changeState("cooldown");
+                }
+            }
+            t.hb.move();
+            ctx.fillText(fillText, t.hb.x - t.hb.w/2 + 10, t.hb.y - t.hb.h/2 - 5);
+            ctx.fillRect(t.hb.x - t.hb.w/2,t.hb.y - t.hb.w/2,t.hb.w,t.hb.h);
+            // ctx.strokeStyle = 'red';
+            // ctx.strokeRect(t.hb.x - 1,t.hb.y - 1,1,1);
+            // ctx.beginPath();
+            // ctx.arc(t.hb.x, t.hb.y, holdRadius,0, 2 * Math.PI, false);
+            // ctx.lineWidth = 1;
+            // ctx.strokeStyle = 'purple';
+            // ctx.stroke();
+        },
+        changeState: function(state){
+            let t = this;
+            t.frameCounter = state == "cooldown" ? 30 : 45;
+            t.state = state;
         }
     }
 }
@@ -280,7 +325,7 @@ var getDist = (hb1, hb2) => {
     let xdiff = hb1.x - hb2.x;
     let ydiff = hb1.y - hb2.y;
     let dist = Math.hypot(xdiff, ydiff);
-    let scalDiff = (8 - dist) / dist;
+    let scalDiff = (12 - dist) / dist;
     let angle = Math.atan2(ydiff,xdiff) || 0;
     scalDiff = scalDiff > 0 || isNaN(scalDiff) ? 0 : scalDiff;
     return {

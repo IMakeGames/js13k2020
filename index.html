@@ -56,9 +56,10 @@
     });
     var boundaries = [genHb(0,0,1000,10),genHb(0,10,10,980),genHb(0,990,1000,10),genHb(990,10,10,980)];
     var playa = genPj(100,100);
+    var enemy = genMuncher(900,100);
     //var socket = genSocket(950, 480, "origin", "right",0);
     //var sockets = [genSocket(480,10,"origin","up",30), genSocket(480, 950, "end", "down"), genSocket(10, 480, "end", "left",0,socket), socket]
-    var socket1 = genSocket(10, 480, "origin","left", 50);
+    var socket1 = genSocket(10, 480, "origin","left", 65);
     var socket2 = genSocket(950, 480, "end", "right");
     socket2.attach(socket1.rope);
     var sockets = [socket1, socket2];
@@ -72,6 +73,7 @@
         // ctx.fillText('playa magnitude: ' + playa.hb.mag, 50, 800);
         // ctx.fillText('mc position x: ' + playa.hb.x + ", y: " + playa.hb.y +"}", 50, 850);
         playa.update();
+        enemy.update();
         boundaries.forEach(function(bound){
             ctx.fillStyle = 'red';
             ctx.fillRect(bound.x,bound.y,bound.w,bound.h);
