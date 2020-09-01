@@ -51,11 +51,20 @@ function genPj(initX, initY){
         rope: null,
         update: function(){
             let t = this;
+            //No negative magnitudes. If magnitude is negative, angle is reversed and magnitude is absoluted
+            if(t.hb.mag < -1){
+                t.hb.mag *= -1;
+                t.hb.ang = t.hb.ang > 0 ? t.hb.ang - Math.PI : Math.PI - t.hb.ang;
+            }
             t.hb.mag -= t.dashFrames ? t.hb.mag*dashAcc/dashMaxVel : t.hb.mag*mouseAcc/maxVel;
             if(!t.dashFrames && t.dashCoolDown < (totalDashCd - afterDashMovCd) && isMousePressed){
                 let mouseDist = getDist(mousePos,t.hb);
                 t.hb.mag += mouseDist.dist > 100 ? mouseAcc : (mouseDist.dist/100)*mouseAcc;
                 t.hb.ang = mouseDist.angle;
+                ctx.fillStyle = "black"
+                ctx.font = '25px serif';
+                ctx.fillText('magnitude: ' + t.hb.mag.toFixed(3), 50, 830);
+                // t.hb.ang = mouseDist.angle;
             }
             if(t.dashFrames){
                 t.hb.mag += dashAcc;
@@ -123,13 +132,13 @@ function genPj(initX, initY){
 
 //TODO Delete these functions
 function signUnit(number){
-    return number/Math.abs(number);
+    return number/Math.abs(number) || 0;
 }
 var absolute = (number) => Math.abs(number);
 
 function genRopeSec(initX, initY, amount){
     let hb = genHb(initX, initY, 2, 2);
-    let linkDistRestriction = 8;
+    let linkDistConstraint = 12;
 //    links.push(hb);
     return {
         attached: false,
@@ -140,7 +149,7 @@ function genRopeSec(initX, initY, amount){
         child: amount > 0 ? genRopeSec(initX, initY, amount -1) : null,
         update(fixedHb){
             var t = this;
-            var tries = 21;
+            var tries = 31;
             do{
                 if(fixedHb){
                     t.hb.x = fixedHb.x;
@@ -158,7 +167,7 @@ function genRopeSec(initX, initY, amount){
             }
             if(t.child){
                 let dist = getDist(t.hb,t.child.hb);
-                if(dist.dist > linkDistRestriction){
+                if(dist.dist > linkDistConstraint){
                     bool = false;
                     t.hb.x += dist.translateX;
                     t.hb.y += dist.translateY;
@@ -166,12 +175,16 @@ function genRopeSec(initX, initY, amount){
                     t.child.hb.y -= dist.translateY;
                 }
                 let distMc = getDist(t.hb, playa.hb);
-                if(distMc.dist < t.hb.w/2 + playa.hb.w/2){
+                let maxDist = (t.hb.w + playa.hb.w)/1.5;
+                if(distMc.dist <= maxDist){
                     bool = false;
-                    t.hb.x += -5*distMc.translateX;
-                    t.hb.y += -5*distMc.translateY;
-                    //TODO: Make push when dashing more natural
-                    playa.hb.mag = playa.dashFrames ? -dashMaxVel : 0;
+                    let invPer = (maxDist - distMc.dist)/maxDist;
+                    t.hb.x -= distMc.translateX;
+                    t.hb.y -= distMc.translateY;
+                    playa.hb.x += distMc.translateX;
+                    playa.hb.y += distMc.translateY;
+                    //TODO: Check if there is a problem while recoiling: could go through rope. maybe.
+                    playa.hb.mag = playa.dashFrames ? -dashMaxVel/6 : -1*invPer;
                 }
                 return t.child.solve(bool);
             }else{
@@ -215,11 +228,16 @@ function genSocket(x,y,type,dir,amount,connection){
                     t.connection.rope = genRopeSec(t.connection.conPt[0], t.connection.conPt[1], t.rope.amount);
                     ropes.push(t.connection.rope);
                 }
-                t.rope.update(t.conPt[0], t.conPt[1]);
+                t.rope.update({x:t.conPt[0], y:t.conPt[1]});
             }
             ctx.strokeStyle = 'green';
             ctx.strokeRect(t.hb.x,t.hb.y,t.hb.w,t.hb.h);
         },
+        attach: function(rope){
+            let t = this;
+            t.rope = rope;
+            t.rope.attached = true;
+        }
     }
 }
 

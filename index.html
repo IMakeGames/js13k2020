@@ -56,8 +56,12 @@
     });
     var boundaries = [genHb(0,0,1000,10),genHb(0,10,10,980),genHb(0,990,1000,10),genHb(990,10,10,980)];
     var playa = genPj(100,100);
-    var socket = genSocket(950, 480, "origin", "right",0);
-    var sockets = [genSocket(480,10,"origin","up",30), genSocket(480, 950, "end", "down"), genSocket(10, 480, "end", "left",0,socket), socket]
+    //var socket = genSocket(950, 480, "origin", "right",0);
+    //var sockets = [genSocket(480,10,"origin","up",30), genSocket(480, 950, "end", "down"), genSocket(10, 480, "end", "left",0,socket), socket]
+    var socket1 = genSocket(10, 480, "origin","left", 50);
+    var socket2 = genSocket(950, 480, "end", "right");
+    socket2.attach(socket1.rope);
+    var sockets = [socket1, socket2];
     var ropes = [sockets[0].rope];
     var munchers = [genMuncher(850,100)]
     //var lastTime = Date.now();
@@ -65,7 +69,7 @@
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         // ctx.fillStyle = "black"
         // ctx.font = '25px serif';
-        // ctx.fillText('mouse pos while pressed: {x: ' + mousePos.x + ", y: " + mousePos.y +"}", 50, 800);
+        // ctx.fillText('playa magnitude: ' + playa.hb.mag, 50, 800);
         // ctx.fillText('mc position x: ' + playa.hb.x + ", y: " + playa.hb.y +"}", 50, 850);
         playa.update();
         boundaries.forEach(function(bound){
