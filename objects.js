@@ -47,6 +47,7 @@ function genPj(initX, initY){
     return {
         dashFrames: 0,
         dashCoolDown: 0,
+        health: 3,
         hb: genHb(initX, initY, 20, 20),
         rope: null,
         update: function(){
@@ -106,14 +107,13 @@ function genPj(initX, initY){
                 }
             }
             if(t.dashCoolDown) t.dashCoolDown--;
-
+            ctx.lineWidth = 1;
             ctx.strokeStyle = 'blue';
             ctx.strokeRect(t.hb.x - t.hb.w/2,t.hb.y - t.hb.w/2,t.hb.w,t.hb.h);
             ctx.strokeStyle = 'red';
             ctx.strokeRect(t.hb.x - 1,t.hb.y - 1,1,1);
             ctx.beginPath();
             ctx.arc(t.hb.x, t.hb.y, holdRadius,0, 2 * Math.PI, false);
-            ctx.lineWidth = 1;
             ctx.strokeStyle = 'purple';
             ctx.stroke();
         },
@@ -123,9 +123,10 @@ function genPj(initX, initY){
             return {x: t.hb.x - childDist.normalX * holdRadius, y: t.hb.y - childDist.normalY * holdRadius}
         },
         impact: function(enemyAngle){
-            this.hb.ang = enemyAngle;
-            this.hb.ang = opAngle(this.hb.ang);
-            this.dashFrames = totalDashFrames/2;
+            let t = this;
+            t.health--;
+            t.hb.ang = enemyAngle - Math.PI;
+            t.dashFrames = totalDashFrames/2;
         }
     }
 }

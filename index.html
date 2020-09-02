@@ -17,11 +17,12 @@
     var isMousePressed = false;
     var lastMouseUp = 0;
     var lastMouseDown = 0;
-    var resolveShortClick = 0;
+    var resolveShortClick = false;
     var mouseAcc = 1;
     var dashAcc = 4;
     var dashMaxVel = 32;
     var maxVel = 6;
+    var gameState = "game";
     //Set all smoothing effects off
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
@@ -72,6 +73,8 @@
         // ctx.font = '25px serif';
         // ctx.fillText('playa magnitude: ' + playa.hb.mag, 50, 800);
         // ctx.fillText('mc position x: ' + playa.hb.x + ", y: " + playa.hb.y +"}", 50, 850);
+        if(gameState == "")
+        //========= DISPLAY EVERYTHING
         playa.update();
         enemy.update();
         boundaries.forEach(function(bound){
@@ -80,6 +83,26 @@
         });
         ropes.forEach(rope => !rope.attached ? rope.update():null);
         sockets.forEach(socket => socket.update());
+        //=========
+        //========= DISPLAY HEALTH
+        ctx.fillStyle= 'green'
+        ctx.lineWidth = 5;
+        ctx.strokeStyle= 'green'
+        let totalHp= 3;
+        let width = 20;
+        let height = 30;
+        let y = 25;
+        let initx = 25;
+
+        for(let i = 1;i<= totalHp;i++){
+            ctx.strokeRect(initx, y, width, height);
+            if(playa.health >= i){
+                ctx.fillRect(initx+5, y+5, width-10, height-10);
+            }
+            initx+= 10 + width;
+        }
+        //=========
+
         requestAnimationFrame(game_tick);
     }
     game_tick();
