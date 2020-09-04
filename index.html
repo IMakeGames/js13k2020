@@ -24,7 +24,8 @@
     var dashMaxVel = 32;
     var maxVel = 6;
     var gameState = "playing";
-    var currentStage = 2;
+    var currentStage = 1;
+    var spawnPoint = {x: 100,y: 100};
     var messageFrames = 0;
     //Set all smoothing effects off
     ctx.imageSmoothingEnabled = false;
@@ -63,7 +64,7 @@
     //=========
 
     //Stage is defined here
-    var playa = genPj(100,100);
+    var playa = genPj(0,0);
     let stage1 = ()=>{
         let socket1 = genSocket(480, 10, "origin","up", 90);
         let socket2 = genSocket(480, 950, "end", "down");
@@ -83,6 +84,39 @@
         }
     }
     let stage2 = ()=>{
+        return {
+            enemies: [],
+            loaded: false,
+            sockets: null,
+            holes: null,
+            ropes: null,
+            update: function(){
+                let t = this;
+                if(!t.loaded) t.setup();
+                t.enemies.forEach(enemy => enemy.update());
+                t.ropes.forEach(rope => !rope.attached ? rope.update():null);
+                t.holes.forEach(hole => hole.update());
+                t.sockets.forEach(socket => socket.update());
+                if(t.sockets[1].rope){
+                    triggerWin();
+                }
+            },
+            setup(){
+                let t = this;
+                let socket1 = genSocket(480, 10, "origin","up", 90);
+                let socket2 = genSocket(480, 950, "end", "down");
+                let holes= [genHole(10,200,250,75)]
+                spawnPoint.x = 100;
+                spawnPoint.y = 100;
+                playa.goToSpawn();
+                t.sockets = [socket1, socket2];
+                t.ropes = [socket1.rope];
+                t.holes = holes;
+                t.loaded = true;
+            }
+        }
+    }
+    let stage3 = ()=>{
         let socket1 = genSocket(480, 10, "origin","up", 40);
         let socket2 = genSocket(10, 480, "end","left");
         let socket3 = genSocket(950, 480, "end", "right");
@@ -103,7 +137,7 @@
             }
         }
     }
-    let stage3 = ()=>{
+    let stage4 = ()=>{
         return {
             enemies: [genMuncher(900,100)],
             loaded: false,
@@ -133,7 +167,7 @@
             }
         }
     }
-    var stages = [stage1(),stage2(),stage3()];
+    var stages = [stage1(),stage2(),stage3(), stage4()];
     var stage = stages[currentStage];
     let triggerWin = ()=>{
         playa.hb.x = 100;
@@ -149,20 +183,20 @@
         ctx.strokeStyle = 'red';
         ctx.lineWidth= 20;
         ctx.strokeRect(0,0,1000,1000);
-        let dateNow = Date.now();
-        let interval = dateNow - lastTime;
-        lastTime = dateNow;
-        let frameRate = 1000/interval;
-        ctx.fillStyle = "black"
-        ctx.font = '25px serif';
-        ctx.fillText('framerate: ' + frameRate.toFixed(3), 50, 850);
+        // let dateNow = Date.now();
+        // let interval = dateNow - lastTime;
+        // lastTime = dateNow;
+        // let frameRate = 1000/interval;
+        // ctx.fillStyle = "black"
+        // ctx.font = '25px serif';
+        // ctx.fillText('framerate: ' + frameRate.toFixed(3), 50, 850);
         if(gameState == "menu"){
 
         }
         if(gameState == "playing"){
             //========= DISPLAY AND UPDATE EVERYTHING
-            playa.update();
             stage.update();
+            playa.update();
             //=========
             //========= DISPLAY HEALTH
             ctx.fillStyle= 'green'
