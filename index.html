@@ -11,6 +11,7 @@
 </style>
 <script src="objects.js"></script>
 <script>
+    //========= SETS UP GLOBAL VARIABLES
     var main = document.getElementById("main");
     var ctx = main.getContext("2d");
     var mousePos = {x: 0, y: 0}
@@ -22,7 +23,9 @@
     var dashAcc = 4;
     var dashMaxVel = 32;
     var maxVel = 6;
-    var gameState = "game";
+    var gameState = "playing";
+    var currentStage = 2;
+    var messageFrames = 0;
     //Set all smoothing effects off
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
@@ -33,7 +36,9 @@
     ctx.strokeStyle = 'red';
     ctx.fillStyle = 'green';
     ctx.lineWidth = 5;
+    //=========
 
+    //========= CONTROLS MOUSE EVENTS
     main.addEventListener('mousedown', e => {
         isMousePressed = true;
         mousePos.x = 1000*e.offsetX/main.getBoundingClientRect().width;
@@ -55,53 +60,143 @@
             mousePos.y = 1000*e.offsetY/main.getBoundingClientRect().bottom;
         }
     });
-    var boundaries = [genHb(0,0,1000,10),genHb(0,10,10,980),genHb(0,990,1000,10),genHb(990,10,10,980)];
+    //=========
+
+    //Stage is defined here
     var playa = genPj(100,100);
-    var enemy = genMuncher(900,100);
-    //var socket = genSocket(950, 480, "origin", "right",0);
-    //var sockets = [genSocket(480,10,"origin","up",30), genSocket(480, 950, "end", "down"), genSocket(10, 480, "end", "left",0,socket), socket]
-    var socket1 = genSocket(10, 480, "origin","left", 65);
-    var socket2 = genSocket(950, 480, "end", "right");
-    socket2.attach(socket1.rope);
-    var sockets = [socket1, socket2];
-    var ropes = [sockets[0].rope];
-    var munchers = [genMuncher(850,100)]
-    //var lastTime = Date.now();
+    let stage1 = ()=>{
+        let socket1 = genSocket(480, 10, "origin","up", 90);
+        let socket2 = genSocket(480, 950, "end", "down");
+        return {
+            enemies: [],
+            sockets: [socket1, socket2],
+            ropes: [socket1.rope],
+            update: function(){
+                let t = this;
+                t.enemies.forEach(enemy => enemy.update());
+                t.ropes.forEach(rope => !rope.attached ? rope.update():null);
+                t.sockets.forEach(socket => socket.update());
+                if(this.sockets[1].rope){
+                    triggerWin();
+                }
+            },
+        }
+    }
+    let stage2 = ()=>{
+        let socket1 = genSocket(480, 10, "origin","up", 40);
+        let socket2 = genSocket(10, 480, "end","left");
+        let socket3 = genSocket(950, 480, "end", "right");
+        let socket4 = genSocket(480, 950, "end", "down");
+        socket2.connection = socket3;
+        return {
+            enemies: [],
+            sockets: [socket1, socket2, socket3, socket4],
+            ropes: [socket1.rope],
+            update: function(){
+                let t = this;
+                t.enemies.forEach(enemy => enemy.update());
+                t.ropes.forEach(rope => !rope.attached ? rope.update():null);
+                t.sockets.forEach(socket => socket.update());
+                if(this.sockets[3].rope){
+                    triggerWin();
+                }
+            }
+        }
+    }
+    let stage3 = ()=>{
+        return {
+            enemies: [genMuncher(900,100)],
+            loaded: false,
+            sockets: null,
+            ropes: null,
+            update(){
+                let t = this;
+                if(!t.loaded) t.setup();
+                t.enemies.forEach(enemy => enemy.update());
+                t.ropes.forEach(rope => !rope.attached ? rope.update():null);
+                t.sockets.forEach(socket => socket.update());
+                if(t.sockets[3].rope){
+                    triggerWin();
+                }
+            },
+            setup(){
+                let t = this;
+                let socket1 = genSocket(10, 480, "origin","left", 50);
+                let socket2 = genSocket(950, 480, "end", "right");
+                let socket3 = genSocket(480, 10, "origin","up", 90);
+                let socket4 = genSocket(480, 950, "end", "down");
+                //socket2.attach(socket1.rope);
+                socket1.rope.attach(socket2, socket2.conPt);
+                t.sockets = [socket1, socket2, socket3, socket4];
+                t.ropes = [socket1.rope, socket3.rope];
+                t.loaded = true;
+            }
+        }
+    }
+    var stages = [stage1(),stage2(),stage3()];
+    var stage = stages[currentStage];
+    let triggerWin = ()=>{
+        playa.hb.x = 100;
+        playa.hb.y = 100;
+        gameState = "win";
+        currentStage++;
+        messageFrames = 120;
+        stage = stages[currentStage];
+    }
+    var lastTime = Date.now();
     function game_tick() {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        // ctx.fillStyle = "black"
-        // ctx.font = '25px serif';
-        // ctx.fillText('playa magnitude: ' + playa.hb.mag, 50, 800);
-        // ctx.fillText('mc position x: ' + playa.hb.x + ", y: " + playa.hb.y +"}", 50, 850);
-        if(gameState == "")
-        //========= DISPLAY EVERYTHING
-        playa.update();
-        enemy.update();
-        boundaries.forEach(function(bound){
-            ctx.fillStyle = 'red';
-            ctx.fillRect(bound.x,bound.y,bound.w,bound.h);
-        });
-        ropes.forEach(rope => !rope.attached ? rope.update():null);
-        sockets.forEach(socket => socket.update());
-        //=========
-        //========= DISPLAY HEALTH
-        ctx.fillStyle= 'green'
-        ctx.lineWidth = 5;
-        ctx.strokeStyle= 'green'
-        let totalHp= 3;
-        let width = 20;
-        let height = 30;
-        let y = 25;
-        let initx = 25;
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth= 20;
+        ctx.strokeRect(0,0,1000,1000);
+        let dateNow = Date.now();
+        let interval = dateNow - lastTime;
+        lastTime = dateNow;
+        let frameRate = 1000/interval;
+        ctx.fillStyle = "black"
+        ctx.font = '25px serif';
+        ctx.fillText('framerate: ' + frameRate.toFixed(3), 50, 850);
+        if(gameState == "menu"){
 
-        for(let i = 1;i<= totalHp;i++){
-            ctx.strokeRect(initx, y, width, height);
-            if(playa.health >= i){
-                ctx.fillRect(initx+5, y+5, width-10, height-10);
-            }
-            initx+= 10 + width;
         }
-        //=========
+        if(gameState == "playing"){
+            //========= DISPLAY AND UPDATE EVERYTHING
+            playa.update();
+            stage.update();
+            //=========
+            //========= DISPLAY HEALTH
+            ctx.fillStyle= 'green'
+            ctx.lineWidth = 5;
+            ctx.strokeStyle= 'green'
+            let totalHp= 3;
+            let width = 20;
+            let height = 30;
+            let y = 25;
+            let initx = 25;
+            for(let i = 1;i<= totalHp;i++){
+                ctx.strokeRect(initx, y, width, height);
+                if(playa.health >= i){
+                    ctx.fillRect(initx+5, y+5, width-10, height-10);
+                }
+                initx+= 10 + width;
+            }
+            //=========
+        }
+        if(gameState == "game_over"){
+            ctx.fillStyle = 'black';
+            ctx.font = '60px Extrabold sans-serif';
+            ctx.fillText("Game Over", 75, 440);
+        }
+        if(gameState == "win"){
+            ctx.fillStyle = 'green';
+            ctx.font = '60px Extrabold sans-serif';
+            ctx.fillText("You Won Level" + currentStage, 75, 440);
+            if(!messageFrames){
+                gameState = "playing"
+            }else{
+                messageFrames--;
+            }
+        }
 
         requestAnimationFrame(game_tick);
     }
