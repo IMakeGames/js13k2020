@@ -36,276 +36,6 @@ function genHb(x,y,w,h){
         }
     }
 }
-function genPj(initX, initY){
-    //TODO: pass numbers directly when quantities have been decided.
-    let holdRadius = 22;
-    let afterDashMovCd = 10;
-    let totalDashCd = 50;
-    let totalDashFrames = 10;
-    let stretchMinDist = 6;
-    let stretchMaxDist = 10;
-    let fallFramesHalved = 30;
-    return {
-        dashFrames: 0,
-        dashCoolDown: 0,
-        state: "normal",
-        frameCounter: 0,
-        health: 3,
-        hb: genHb(initX, initY, 20, 20),
-        rope: null,
-        update(){
-            let t = this;
-            let scale = 1;
-            let reSpawnPos = 0;
-            if(!t.frameCounter) {
-                //No negative magnitudes. If magnitude is negative, angle is reversed and magnitude is absoluted
-                if (t.hb.mag < -1) {
-                    t.hb.mag *= -1;
-                    t.hb.ang = t.hb.ang - Math.PI;
-                }
-                t.hb.mag -= t.dashFrames ? t.hb.mag * dashAcc / dashMaxVel : t.hb.mag * mouseAcc / maxVel;
-                if (!t.dashFrames && t.dashCoolDown < (totalDashCd - afterDashMovCd) && isMousePressed) {
-                    let mouseDist = getDist(mousePos, t.hb);
-                    t.hb.mag += mouseDist.dist > 100 ? mouseAcc : (mouseDist.dist / 100) * mouseAcc;
-                    t.hb.ang = mouseDist.angle;
-                }
-                if (t.dashFrames) {
-                    t.hb.mag += dashAcc;
-                }
-                if (t.rope) {
-                    let holdPoint = t.getHoldPoint();
-                    let realChildDist = getDist(holdPoint, t.rope.hb);
-                    let newM = realChildDist.dist > stretchMinDist ? (realChildDist.dist - stretchMinDist) * maxVel / stretchMaxDist : 0;
-                    let xvecResult = Math.cos(t.hb.ang) * t.hb.mag - Math.cos(realChildDist.angle) * newM;
-                    let yvecResult = Math.sin(t.hb.ang) * t.hb.mag - Math.sin(realChildDist.angle) * newM;
-                    let newAng = Math.atan2(yvecResult, xvecResult) || 0;
-                    t.hb.ang = newAng;
-                    t.hb.mag -= newM;
-                    if (t.hb.mag < 0) t.hb.mag *= -4;
-                    t.rope.update(holdPoint);
-                }
-                t.hb.move();
-                if (resolveShortClick && !t.dashFrames) {
-                    if (t.rope) {
-                        if (soc = stage.sockets.find(socket => getDist(t.hb, {
-                            x: socket.conPt[0],
-                            y: socket.conPt[1]
-                        }).dist < 30 && !socket.rope)) {
-                            t.rope.attach(soc, soc.conPt);
-                        } else {
-                            t.rope.attached = null;
-                            t.rope = null;
-                        }
-                        t.rope = null;
-                    } else if (rop = stage.ropes.find(rope => getDist(t.hb, rope.hb).dist < 50)) {
-                        if (getDist(rop.hb, mousePos).dist < 10) rop.attach(t, rop.hb);
-                    } else if (!t.dashCoolDown && (Date.now() - lastMouseUp < 270)) {
-                        let distFromMouse = getDist(mousePos, t.hb);
-                        t.hb.ang = distFromMouse.angle;
-                        t.dashFrames = totalDashFrames;
-                    }
-                }
-                //ResolveShortClick must always be falsed even if action is not taken
-                resolveShortClick = false;
-
-                if (t.dashFrames) {
-                    t.dashFrames--;
-                    if (!t.dashFrames) {
-                        t.dashCoolDown = totalDashCd;
-                    }
-                }
-            }else{
-                if(t.frameCounter >= fallFramesHalved){
-                    scale = (t.frameCounter - fallFramesHalved)/fallFramesHalved;
-
-                }else{
-                    t.goToSpawn();
-                    reSpawnPos = t.frameCounter/fallFramesHalved;
-                }
-                t.frameCounter--;
-                if(!t.frameCounter) t.state = "normal";
-            }
-            if (t.dashCoolDown) t.dashCoolDown--;
-            ctx.lineWidth = 1;
-            ctx.fillStyle = 'blue';
-            ctx.fillRect(t.hb.x - t.hb.w/2,(t.hb.y - t.hb.w/2) - reSpawnPos*(t.hb.y - t.hb.h/2),t.hb.w*scale,t.hb.h*scale);
-            ctx.strokeStyle = 'red';
-            ctx.strokeRect(t.hb.x - 1,(t.hb.y - 1) - reSpawnPos*(t.hb.y - 1),1,1);
-            ctx.beginPath();
-            ctx.arc(t.hb.x, t.hb.y - reSpawnPos*t.hb.y, holdRadius,0, 2 * Math.PI, false);
-            ctx.strokeStyle = 'purple';
-            ctx.stroke();
-        },
-        getHoldPoint(){
-            let t = this;
-            let childDist = getDist(t.hb, t.rope.hb);
-            return {x: t.hb.x - childDist.normalX * holdRadius, y: t.hb.y - childDist.normalY * holdRadius}
-        },
-        impact(enemyAngle){
-            let t = this;
-            t.deductHealth();
-            t.hb.ang = enemyAngle - Math.PI;
-            t.dashFrames = totalDashFrames/2;
-        },
-        triggerFall(){
-            let t = this;
-            t.state = "falling"
-            t.deductHealth();
-            t.frameCounter = fallFramesHalved*2;
-            t.hb.mag = 0;
-        },
-        goToSpawn(){
-            let t = this;
-            t.hb.x = spawnPoint.x;
-            t.hb.y = spawnPoint.y;
-        },
-        deductHealth(){
-            let t = this;
-            t.health--;
-            if(t.health < 1){
-                gameState = "game_over";
-            }
-        }
-    }
-}
-
-
-//TODO Delete these functions
-function signUnit(number){
-    return number/Math.abs(number) || 0;
-}
-var absolute = (number) => Math.abs(number);
-
-var opAngle = (ang) => ang > 0 ? ang - Math.PI : Math.PI - ang;
-
-function genRopeSec(initX, initY, amount){
-    let hb = genHb(initX, initY, 5, 5);
-    let linkDistConstraint = 10;
-//    links.push(hb);
-    return {
-        attached: null,
-        hb: hb,
-        fixedX: initX,
-        fixedY: initY,
-        amount: amount,
-        child: amount > 0 ? genRopeSec(initX, initY, amount -1) : null,
-        parent: null,
-        update(fixedHb){
-            var t = this;
-            var tries = 31;
-            do{
-                if(fixedHb){
-                    t.hb.x = fixedHb.x;
-                    t.hb.y = fixedHb.y;
-                }
-                tries--;
-            }while(!t.solve(true) && tries > 0)
-            t.draw();
-        },
-        solve(bool){
-            let t = this;
-            if(munch = stage.enemies.find(muncher => getDist(t.hb, muncher.hb).dist < 150)){
-                munch.triggerFood(t);
-            }
-            if(t.child){
-                if(!t.child.parent) t.child.parent = t;
-                let dist = getDist(t.hb,t.child.hb);
-                if(dist.dist > linkDistConstraint){
-                    bool = false;
-                    t.hb.x += dist.translateX;
-                    t.hb.y += dist.translateY;
-                    t.child.hb.x -= dist.translateX;
-                    t.child.hb.y -= dist.translateY;
-                }
-                let distMc = getDist(t.hb, playa.hb);
-                let maxDist = (t.hb.w + playa.hb.w)/1.5;
-                if(distMc.dist <= maxDist){
-                    bool = false;
-                    let per = distMc.dist/maxDist;
-                    // let invPer = (maxDist - distMc.dist)/maxDist;
-                    let invPer = 1 - per;
-                    t.hb.x -= distMc.translateX*per;
-                    t.hb.y -= distMc.translateY*per;
-                    playa.hb.x += distMc.translateX*invPer;
-                    playa.hb.y += distMc.translateY*invPer;
-                    //TODO: Check if there is a problem while recoiling: could go through rope. maybe.
-                    playa.hb.mag = playa.dashFrames ? -dashMaxVel/8 : -1*invPer;
-                }
-                return t.child.solve(bool);
-            }else{
-                t.hb.x = t.fixedX;
-                t.hb.y = t.fixedY
-                return bool
-            }
-        },
-        attach(el, holdPt){
-            let t = this;
-            t.attached = el;
-            el.rope = t;
-            t.update(holdPt);
-        },
-        destroy(){
-            let t = this;
-            t.child.parent = null;
-            stage.ropes =[stage.ropes[1],t.child, t];
-            t.reverse();
-        },
-        reverse(){
-          let t = this;
-          t.child = t.parent;
-          if(t.child) {
-              t.child.reverse();
-          }else{
-              t.attached.rope = null;
-              t.attached = null;
-              t.fixedX = t.hb.x;
-              t.fixedY = t.hb.y;
-          }
-        },
-        draw(){
-            let t = this;
-            ctx.beginPath();
-            ctx.arc(t.hb.x, t.hb.y, 5,0, 2 * Math.PI, false);
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = '#003300';
-            ctx.stroke();
-            if(t.child) t.child.draw();
-        },
-    }
-}
-
-function genSocket(x,y,type,dir,amount,connection){
-    let wh;
-    let conPt;
-    let add = dir == "left" || dir == "up" ? 40 : 0;
-    if(dir == "left" || dir == "right"){
-        wh = [40,20];
-        conPt = [x + add, y + 10]
-    }else{
-        wh = [20,40];
-        conPt = [x + 10, y + add]
-    }
-    return {
-        hb: genHb(x,y,wh[0],wh[1]),
-        type: type,
-        connection: connection,
-        conPt: conPt,
-        rope: type == "origin" && amount > 0 ? genRopeSec(conPt[0],conPt[1],amount) : null,
-        update(){
-            let t = this;
-            if(t.type == "end" && t.rope){
-                if(t.connection && !t.connection.rope){
-                    t.connection.rope = genRopeSec(t.connection.conPt[0], t.connection.conPt[1], t.rope.amount);
-                    stage.ropes.push(t.connection.rope);
-                    t.connection.type = "origin";
-                }
-                t.rope.update({x:t.conPt[0], y:t.conPt[1]});
-            }
-            ctx.strokeStyle = 'green';
-            ctx.strokeRect(t.hb.x,t.hb.y,t.hb.w,t.hb.h);
-        }
-    }
-}
 
 function genMuncher(x,y){
     return {
@@ -427,26 +157,24 @@ var getDist = (hb1, hb2) => {
 }
 
 var genHole = (x,y,w,h)=>{
+    let timeBeforeFall = 50;
     return {
         hb: genHb(x,y,w,h),
         timerStamp: 0,
         update(){
             let t = this;
-            ctx.fillStyle = "black"
-            ctx.font = '25px Extrabold serif';
             let playaX = playa.hb.x - playa.hb.w/2;
             let playaY = playa.hb.y - playa.hb.h/2;
             if(playaX >= t.hb.x && playaX+playa.hb.w <= t.hb.x + t.hb.w && playaY >= t.hb.y && playaY+playa.hb.h <= t.hb.y + t.hb.h){
                 if(!t.timerStamp){
                     t.timerStamp = Date.now();
-                }else if(Date.now() - t.timerStamp >= 75 && playa.state != "falling"){
+                }else if(Date.now() - t.timerStamp >= timeBeforeFall && playa.state != "falling"){
                     playa.triggerFall();
                 }
-                ctx.fillText('playa is within bounds', 50, 850);
             }else{
                 t.timerStamp = 0;
-                ctx.fillText('play AINT within bounds: ', 50, 850);
             }
+            ctx.fillStyle = "black"
             ctx.fillRect(t.hb.x,t.hb.y ,t.hb.w,t.hb.h);
         }
     }
