@@ -161,7 +161,9 @@ function genSocket(x,y,type,dir,amount,connection){
                 if(t.frameCounter > animationFrames){
                     t.frameCounter = 0;
                 }
-                if(t.rope){}
+                if(t.rope){
+                    triggerWin();
+                }
             }
             ctx.strokeStyle = 'green';
             ctx.lineWidth = "1";

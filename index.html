@@ -13,6 +13,7 @@
 <script src="stage.js"></script>
 <script src="player.js"></script>
 <script src="rope.js"></script>
+<script src="bganimation.js"></script>
 <script>
     //========= SETS UP GLOBAL VARIABLES
     var main = document.getElementById("main");
@@ -27,9 +28,10 @@
     var dashMaxVel = 32;
     var maxVel = 6;
     var gameState = "playing";
-    var currentStage = 0;
+    var currentStage = 3;
     var spawnPoint = {x: 100,y: 100};
     var messageFrames = 0;
+    var background = genBackground();
     //Set all smoothing effects off
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
@@ -81,6 +83,8 @@
     var lastTime = Date.now();
     function game_tick() {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         ctx.strokeStyle = 'red';
         ctx.lineWidth= 20;
         ctx.strokeRect(0,0,1000,1000);
@@ -96,6 +100,7 @@
         }
         if(gameState == "playing"){
             //========= DISPLAY AND UPDATE EVERYTHING
+            background.update();
             stage.update();
             playa.update();
             //=========
@@ -136,6 +141,7 @@
         requestAnimationFrame(game_tick);
     }
     game_tick();
+
 </script>
 </body>
 </html>

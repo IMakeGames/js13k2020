@@ -75,7 +75,7 @@ function genMuncher(x,y){
                     break;
                 case "eating":
                     if(t.frameCounter > 0){
-                        fillText = "|:O";
+                        fillText = "🍗";
                     }else{
                         let foodDist = getDist(t.hb,t.food.hb);
                         if(foodDist.dist > 30){
@@ -113,7 +113,7 @@ function genMuncher(x,y){
                 }
             }
             t.hb.move();
-            ctx.fillText(fillText, t.hb.x - t.hb.w/2 + 10, t.hb.y - t.hb.h/2 - 10);
+            ctx.fillText(fillText, t.hb.x - t.hb.w + 10, t.hb.y - t.hb.h/2 - 10);
             ctx.fillRect(t.hb.x - t.hb.w/2,t.hb.y - t.hb.w/2,t.hb.w,t.hb.h);
             // ctx.strokeStyle = 'red';
             // ctx.strokeRect(t.hb.x - 1,t.hb.y - 1,1,1);
