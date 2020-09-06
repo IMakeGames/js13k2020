@@ -156,26 +156,10 @@ var getDist = (hb1, hb2) => {
     };
 }
 
-var genHole = (x,y,w,h)=>{
-    let timeBeforeFall = 50;
-    return {
-        hb: genHb(x,y,w,h),
-        timerStamp: 0,
-        update(){
-            let t = this;
-            let playaX = playa.hb.x - playa.hb.w/2;
-            let playaY = playa.hb.y - playa.hb.h/2;
-            if(playaX >= t.hb.x && playaX+playa.hb.w <= t.hb.x + t.hb.w && playaY >= t.hb.y && playaY+playa.hb.h <= t.hb.y + t.hb.h){
-                if(!t.timerStamp){
-                    t.timerStamp = Date.now();
-                }else if(Date.now() - t.timerStamp >= timeBeforeFall && playa.state != "falling"){
-                    playa.triggerFall();
-                }
-            }else{
-                t.timerStamp = 0;
-            }
-            ctx.fillStyle = "black"
-            ctx.fillRect(t.hb.x,t.hb.y ,t.hb.w,t.hb.h);
-        }
+var getNextWholeDivisor = (dividend, divisor) =>{
+    if(dividend%divisor == 0){
+        return divisor;
+    }else{
+        return getNextWholeDivisor(dividend,divisor - 1);
     }
 }

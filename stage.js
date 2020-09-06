@@ -109,7 +109,9 @@ var genHoles = (holeList)=>{
         canvas: hidden,
         signs: [[1,1,1],[1,1,1],[1,1,1],[1,1,1]],
         colors: [[50,0,0],[80,15,40],[110,30,80],[140,45,120]],
+        //colors: [[0,25,50],[25,50,75],[50,75,0],[75,0,25]],
         ranges: [{min:50, max:140}, {min: 0, max: 45},{min:0, max:120}],
+        //ranges: [{min:0, max:60}, {min: 0, max: 60},{min:0, max:60}],
         stops: [0,0.17,0.33,0.5,0.67,0.83,1],
         gradients: [],
         update(){
@@ -117,12 +119,47 @@ var genHoles = (holeList)=>{
             ctx.save();
 
             //CREATE CLIP PATH
-            let p2D = new Path2D();
+            //let p2D = new Path2D();
+            ctx.beginPath();
             for(let i = 0; i < t.holes.length;i++){
                 let holeHb = t.holes[i].update();
-                p2D.rect(holeHb.x, holeHb.y, holeHb.w, holeHb.h);
+                let sectionLength = 10;
+                ctx.moveTo(holeHb.x, holeHb.y);
+                //top
+                let divisor = getNextWholeDivisor(holeHb.w, sectionLength);
+                let sections = holeHb.w/divisor
+                let variableLength= 10;
+                for(let i = 1; i <= sections;i++){
+                    ctx.lineTo(holeHb.x+divisor*i,holeHb.y + variableLength);
+                    variableLength = Math.abs(variableLength - 10);
+                }
+                //right
+                divisor = getNextWholeDivisor(holeHb.h, sectionLength);
+                sections = holeHb.h/divisor
+                variableLength= 10;
+                for(let i = 1; i <= sections;i++){
+                    ctx.lineTo(holeHb.x + holeHb.w -variableLength,holeHb.y+divisor*i);
+                    variableLength = Math.abs(variableLength - 10);
+                }
+                //bottom
+                divisor = getNextWholeDivisor(holeHb.w, sectionLength);
+                sections = holeHb.w/divisor
+                variableLength= 10;
+                for(let i = 1; i <= sections;i++){
+                    ctx.lineTo(holeHb.x + holeHb.w - divisor*i,holeHb.y + holeHb.h - variableLength);
+                    variableLength = Math.abs(variableLength - 10);
+                }
+                //left
+                divisor = getNextWholeDivisor(holeHb.h, sectionLength);
+                sections = holeHb.h/divisor
+                variableLength= 10;
+                for(let i = 1; i <= sections;i++){
+                    ctx.lineTo(holeHb.x + variableLength,holeHb.y + holeHb.h - divisor*i);
+                    variableLength = Math.abs(variableLength - 10);
+                }
+                //p2D.rect(holeHb.x, holeHb.y, holeHb.w, holeHb.h);
             }
-            ctx.clip(p2D, "nonzero");
+            ctx.clip("nonzero");
 
             //SETUP HIDDEN CANVAS
             let ctxHidden = hidden.getContext("2d");

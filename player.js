@@ -116,6 +116,7 @@ function genPj(initX, initY){
             let t = this;
             t.state = "falling"
             t.deductHealth();
+            t.dashFrames = 0;
             t.frameCounter = fallFramesHalved*2;
             t.hb.mag = 0;
         },
