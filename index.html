@@ -28,7 +28,7 @@
     var dashMaxVel = 32;
     var maxVel = 6;
     var gameState = "playing";
-    var currentStage = 3;
+    var currentStage = 1;
     var spawnPoint = {x: 100,y: 100};
     var messageFrames = 0;
     var background = genBackground();
@@ -85,16 +85,13 @@
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         ctx.fillStyle = "black";
         ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth= 20;
-        ctx.strokeRect(0,0,1000,1000);
-        // let dateNow = Date.now();
-        // let interval = dateNow - lastTime;
-        // lastTime = dateNow;
-        // let frameRate = 1000/interval;
-        // ctx.fillStyle = "black"
-        // ctx.font = '25px serif';
-        // ctx.fillText('framerate: ' + frameRate.toFixed(3), 50, 850);
+        let dateNow = Date.now();
+        let interval = dateNow - lastTime;
+        lastTime = dateNow;
+        let frameRate = 1000/interval;
+        ctx.fillStyle = "white"
+        ctx.font = '25px serif';
+        ctx.fillText('framerate: ' + frameRate.toFixed(3), 50, 850);
         if(gameState == "menu"){
 
         }
@@ -120,6 +117,8 @@
                 }
                 initx+= 10 + width;
             }
+            ctx.lineWidth= 20;
+            ctx.strokeRect(0,0,1000,1000);
             //=========
         }
         if(gameState == "game_over"){

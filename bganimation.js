@@ -48,7 +48,7 @@ function genBackground(){
                                 t.xPosCounter = 0;
                             }
                             let animXPos = 17 + t.xPosCounter * 25;
-                            t.numbers.push(t.number(animXPos, yPos, t.animationFrames * 12));
+                            t.numbers.push(t.number(animXPos, yPos, t.animationFrames * 24));
                         }
                         t.animationFrameCounter++;
                         t.numbers = t.numbers.filter(num => num.draw());
@@ -85,7 +85,7 @@ function genBackground(){
                             if(t.currentFrames > 10 && lifeFrames%t.currentFrames == 0){
                                 t.animNumber = Math.round(Math.random());
                             }
-                            ctx.fillStyle = 'rgba(0, 255, 0, '+ invPer*0.6 +')';
+                            ctx.fillStyle = 'rgba(0, 255, 0, '+ invPer*0.8 +')';
                             ctx.fillText(t.animNumber, xPos, yPos);
                             t.currentFrames++;
                             return t.currentFrames < lifeFrames;
