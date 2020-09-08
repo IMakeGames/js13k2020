@@ -85,7 +85,7 @@ function genBackground(){
                             if(t.currentFrames > 10 && lifeFrames%t.currentFrames == 0){
                                 t.animNumber = Math.round(Math.random());
                             }
-                            ctx.fillStyle = 'rgba(0, 255, 0, '+ invPer*0.8 +')';
+                            ctx.fillStyle = 'rgba(3, 252, 90, '+ invPer*0.4 +')';
                             ctx.fillText(t.animNumber, xPos, yPos);
                             t.currentFrames++;
                             return t.currentFrames < lifeFrames;

@@ -1,15 +1,16 @@
-function genRopeSec(initX, initY, amount){
+function genRopeSec(initX, initY, amount, color= colorBlue){
     let hb = genHb(initX, initY, 5, 5);
     let linkDistConstraint = 10;
     let animationFrames = 100;
 //    links.push(hb);
     return {
         attached: null,
+        //type: type,
         hb: hb,
         fixedX: initX,
         fixedY: initY,
         amount: amount,
-        child: amount > 0 ? genRopeSec(initX, initY, amount -1) : null,
+        child: amount > 0 ? genRopeSec(initX, initY, amount -1, color) : null,
         frameCounter: 0,
         parent: null,
         update(fixedHb){
@@ -29,6 +30,22 @@ function genRopeSec(initX, initY, amount){
             if(munch = stage.enemies.find(muncher => getDist(t.hb, muncher.hb).dist < 150)){
                 munch.triggerFood(t);
             }
+            let distMc = getDist(t.hb, playa.hb);
+            let maxDist = (t.hb.w + playa.hb.w)/1.5;
+            if(distMc.dist <= maxDist){
+                bool = false;
+                let per = distMc.dist/maxDist;
+                // let invPer = (maxDist - distMc.dist)/maxDist;
+                let invPer = 1 - per;
+                if(t.child){
+                    t.hb.x -= distMc.translateX*per;
+                    t.hb.y -= distMc.translateY*per;
+                }
+                playa.hb.x += distMc.translateX*invPer;
+                playa.hb.y += distMc.translateY*invPer;
+                //TODO: Check if there is a problem while recoiling: could go through rope. maybe.
+                playa.hb.mag = playa.dashFrames ? -dashMaxVel/8 : -1*invPer;
+            }
             if(t.child){
                 if(!t.child.parent) t.child.parent = t;
                 let dist = getDist(t.hb,t.child.hb);
@@ -38,20 +55,6 @@ function genRopeSec(initX, initY, amount){
                     t.hb.y += dist.translateY;
                     t.child.hb.x -= dist.translateX;
                     t.child.hb.y -= dist.translateY;
-                }
-                let distMc = getDist(t.hb, playa.hb);
-                let maxDist = (t.hb.w + playa.hb.w)/1.5;
-                if(distMc.dist <= maxDist){
-                    bool = false;
-                    let per = distMc.dist/maxDist;
-                    // let invPer = (maxDist - distMc.dist)/maxDist;
-                    let invPer = 1 - per;
-                    t.hb.x -= distMc.translateX*per;
-                    t.hb.y -= distMc.translateY*per;
-                    playa.hb.x += distMc.translateX*invPer;
-                    playa.hb.y += distMc.translateY*invPer;
-                    //TODO: Check if there is a problem while recoiling: could go through rope. maybe.
-                    playa.hb.mag = playa.dashFrames ? -dashMaxVel/8 : -1*invPer;
                 }
                 return t.child.solve(bool);
             }else{
@@ -86,14 +89,14 @@ function genRopeSec(initX, initY, amount){
         },
         draw(){
             let t = this;
-            if(!t.parent && !t.attached){
+            if(!t.parent && !t.attached && color != colorRed){
                 ctx.beginPath();
                 let per = t.frameCounter/animationFrames;
                 let invPer = 1 - per;
                 let radius = 40*per;
                 ctx.arc(t.hb.x, t.hb.y, radius,0, 2 * Math.PI, false);
-                ctx.lineWidth = 6;
-                ctx.strokeStyle = 'rgba(8, 29, 133, '+ invPer +')';
+                ctx.lineWidth = 10;
+                ctx.strokeStyle = 'rgba('+color+', '+ invPer +')';
                 ctx.stroke();
                 t.frameCounter++;
                 if(t.frameCounter > animationFrames){
@@ -107,7 +110,7 @@ function genRopeSec(initX, initY, amount){
             // ctx.stroke();
             if(t.child){
                 ctx.lineWidth = 15;
-                ctx.strokeStyle = "yellow";
+                ctx.strokeStyle = 'rgba('+color+')';
                 ctx.lineCap = "round"
                 ctx.beginPath();
                 ctx.moveTo(t.hb.x, t.hb.y);
@@ -119,7 +122,7 @@ function genRopeSec(initX, initY, amount){
     }
 }
 
-function genSocket(x,y,type,dir,amount,connection){
+function genSocket(x,y,type,dir,amount,color){
     let wh;
     let conPt;
     let add = dir == "left" || dir == "up" ? 40 : 0;
@@ -131,13 +134,24 @@ function genSocket(x,y,type,dir,amount,connection){
         wh = [20,40];
         conPt = [x + 10, y + add]
     }
+    // const hidden = document.createElement('canvas');
+    // hidden.width = 50;
+    // hidden.height = 50;
+    // let ctxHidden = hidden.getContext("2d");
+    // ctxHidden.clearRect(0, 0, 50, 50);
+    // ctxHidden.fillStyle = '#00c745';
+    // ctxHidden.fillRect(0,0,50,15);
+    // ctxHidden.fillRect(0,35,50,15);
+    // ctxHidden.fillStyle = "rgb("+color+")";
+    // ctxHidden.fillRect(0,15,40,20);
+
     return {
         hb: genHb(x,y,wh[0],wh[1]),
         type: type,
-        connection: connection,
+        connection: null,
         frameCounter: animationFrames/2,
         conPt: conPt,
-        rope: type == "origin" && amount > 0 ? genRopeSec(conPt[0],conPt[1],amount) : null,
+        rope: type == "origin" && amount > 0 ? genRopeSec(conPt[0],conPt[1],amount, color) : null,
         update(){
             let t = this;
             if(t.type == "end" && t.rope){
@@ -154,8 +168,8 @@ function genSocket(x,y,type,dir,amount,connection){
                 let invPer = 1 - per;
                 let radius = 40*invPer;
                 ctx.arc(t.conPt[0], t.conPt[1], radius,0, 2 * Math.PI, false);
-                ctx.lineWidth = 6;
-                ctx.strokeStyle = 'rgba(8, 29, 133, '+ per +')';
+                ctx.lineWidth = 10;
+                ctx.strokeStyle = 'rgba(0, 0, 255, '+ per +')';
                 ctx.stroke();
                 t.frameCounter++;
                 if(t.frameCounter > animationFrames){
@@ -165,8 +179,17 @@ function genSocket(x,y,type,dir,amount,connection){
                     triggerWin();
                 }
             }
-            ctx.strokeStyle = 'green';
-            ctx.lineWidth = "1";
+            //ctx.drawImage(hidden,t.hb.x,t.hb.y-15);
+            ctx.fillStyle = "white"
+            ctx.font = '25px serif';
+            if(color == colorRed) ctx.fillText('color: ' + color, 50, 850);
+            ctx.fillStyle = '#00c745';
+            ctx.fillRect(t.hb.x,t.hb.y-15,50,15);
+            ctx.fillRect(t.hb.x,t.hb.y+20,50,15);
+            ctx.fillStyle = "rgb("+color+")";
+            ctx.fillRect(t.hb.x,t.hb.y,40,20);
+            ctx.strokeStyle = 'pink';
+            ctx.lineWidth = 1;
             ctx.strokeRect(t.hb.x,t.hb.y,t.hb.w,t.hb.h);
         }
     }

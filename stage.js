@@ -33,14 +33,13 @@ let stage2 = ()=>{
         ropes: null,
         update: function(){
             let t = this;
-            if(!t.loaded) t.setup();
+            if(!t.loaded) t.setup(t);
             t.enemies.forEach(enemy => enemy.update());
             t.ropes.forEach(rope => !rope.attached ? rope.update():null);
             t.holes.update();
             t.sockets.forEach(socket => socket.update());
         },
-        setup(){
-            let t = this;
+        setup(t){
             let socket1 = genSocket(950, 700, "origin","right", 30);
             let socket2 = genSocket(480, 950, "win", "down");
             let holes= genHoles([hole(10,300,365,75), hole(300,10,75,365)])
@@ -81,15 +80,15 @@ let stage4 = ()=>{
         update(){
             let t = this;
             if(!t.loaded) t.setup(t);
-            t.enemies.forEach(enemy => enemy.update());
             t.ropes.forEach(rope => !rope.attached ? rope.update():null);
             t.sockets.forEach(socket => socket.update());
+            t.enemies.forEach(enemy => enemy.update());
         },
         setup(t){
-            let socket1 = genSocket(10, 480, "origin","left", 50);
-            let socket2 = genSocket(950, 480, "end", "right");
+            let socket1 = genSocket(10, 480, "origin","left", 50, colorRed);
+            let socket2 = genSocket(950, 480, "end", "right", colorBlue);
             let socket3 = genSocket(480, 10, "origin","up", 90);
-            let socket4 = genSocket(480, 950, "win", "down");
+            let socket4 = genSocket(480, 950, "win", "down", colorBlue);
             spawnPoint.x = 100;
             spawnPoint.y = 100;
             playa.goToSpawn();

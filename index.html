@@ -28,10 +28,13 @@
     var dashMaxVel = 32;
     var maxVel = 6;
     var gameState = "playing";
-    var currentStage = 1;
+    var currentStage = 3;
     var spawnPoint = {x: 100,y: 100};
     var messageFrames = 0;
     var background = genBackground();
+    var colorRed = "255,0,0";
+    var colorYellow = "255,255,0";
+    var colorBlue = "0,0,255";
     //Set all smoothing effects off
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
@@ -90,9 +93,9 @@
         let interval = dateNow - lastTime;
         lastTime = dateNow;
         let frameRate = 1000/interval;
-        ctx.fillStyle = "white"
-        ctx.font = '25px serif';
-        ctx.fillText('framerate: ' + frameRate.toFixed(3), 50, 850);
+        // ctx.fillStyle = "white"
+        // ctx.font = '25px serif';
+        // ctx.fillText('framerate: ' + frameRate.toFixed(3), 50, 850);
         if(gameState == "menu"){
 
         }
@@ -118,8 +121,6 @@
                 }
                 initx+= 10 + width;
             }
-            ctx.lineWidth= 20;
-            ctx.strokeRect(0,0,1000,1000);
             //=========
         }
         if(gameState == "game_over"){
@@ -137,7 +138,9 @@
                 messageFrames--;
             }
         }
-
+        ctx.strokeStyle= '#00c745'
+        ctx.lineWidth= 20;
+        ctx.strokeRect(0,0,1000,1000);
         requestAnimationFrame(game_tick);
     }
     game_tick();

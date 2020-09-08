@@ -20,39 +20,12 @@ function genPj(initX, initY){
             let scale = 1;
             let reSpawnPos = 0;
             if(!t.frameCounter) {
-                //No negative magnitudes. If magnitude is negative, angle is reversed and magnitude is absoluted
-                if (t.hb.mag < -1) {
-                    t.hb.mag *= -1;
-                    t.hb.ang = t.hb.ang - Math.PI;
-                }
-                t.hb.mag -= t.dashFrames ? t.hb.mag * dashAcc / dashMaxVel : t.hb.mag * mouseAcc / maxVel;
-                if (!t.dashFrames && t.dashCoolDown < (totalDashCd - afterDashMovCd) && isMousePressed) {
-                    let mouseDist = getDist(mousePos, t.hb);
-                    t.hb.mag += mouseDist.dist > 100 ? mouseAcc : (mouseDist.dist / 100) * mouseAcc;
-                    t.hb.ang = mouseDist.angle;
-                }
-                if (t.dashFrames) {
-                    t.hb.mag += dashAcc;
-                }
-                if (t.rope) {
-                    let holdPoint = t.getHoldPoint();
-                    let realChildDist = getDist(holdPoint, t.rope.hb);
-                    let newM = realChildDist.dist > stretchMinDist ? (realChildDist.dist - stretchMinDist) * maxVel / stretchMaxDist : 0;
-                    let xvecResult = Math.cos(t.hb.ang) * t.hb.mag - Math.cos(realChildDist.angle) * newM;
-                    let yvecResult = Math.sin(t.hb.ang) * t.hb.mag - Math.sin(realChildDist.angle) * newM;
-                    let newAng = Math.atan2(yvecResult, xvecResult) || 0;
-                    t.hb.ang = newAng;
-                    t.hb.mag -= newM;
-                    if (t.hb.mag < 0) t.hb.mag *= -4;
-                    t.rope.update(holdPoint);
-                }
-                t.hb.move();
                 if (resolveShortClick && !t.dashFrames) {
                     if (t.rope) {
                         if (soc = stage.sockets.find(socket => getDist(t.hb, {
                             x: socket.conPt[0],
                             y: socket.conPt[1]
-                        }).dist < 30 && !socket.rope)) {
+                        }).dist < 50 && !socket.rope)) {
                             t.rope.attach(soc, soc.conPt);
                         } else {
                             t.rope.attached = null;
@@ -61,7 +34,7 @@ function genPj(initX, initY){
                         t.rope = null;
                     } else if (rop = stage.ropes.find(rope => getDist(t.hb, rope.hb).dist < 50)) {
                         //Conditions: must be close to the mouse pos && not already attached to a socket
-                        if (getDist(rop.hb, mousePos).dist < 15 && !rop.attached){
+                        if (getDist(rop.hb, mousePos).dist < 20 && !rop.attached){
                             rop.attach(t, rop.hb);
                         }
                     } else if (!t.dashCoolDown && (Date.now() - lastMouseUp < 270)) {
@@ -69,6 +42,34 @@ function genPj(initX, initY){
                         t.hb.ang = distFromMouse.angle;
                         t.dashFrames = totalDashFrames;
                     }
+                }else{
+                    //No negative magnitudes. If magnitude is negative, angle is reversed and magnitude is absoluted
+                    if (t.hb.mag < -1) {
+                        t.hb.mag *= -1;
+                        t.hb.ang = t.hb.ang - Math.PI;
+                    }
+                    t.hb.mag -= t.dashFrames ? t.hb.mag * dashAcc / dashMaxVel : t.hb.mag * mouseAcc / maxVel;
+                    if (!t.dashFrames && t.dashCoolDown < (totalDashCd - afterDashMovCd) && isMousePressed) {
+                        let mouseDist = getDist(mousePos, t.hb);
+                        t.hb.mag += mouseDist.dist > 100 ? mouseAcc : (mouseDist.dist / 100) * mouseAcc;
+                        t.hb.ang = mouseDist.angle;
+                    }
+                    if (t.dashFrames) {
+                        t.hb.mag += dashAcc;
+                    }
+                    if (t.rope) {
+                        let holdPoint = t.getHoldPoint();
+                        let realChildDist = getDist(holdPoint, t.rope.hb);
+                        let newM = realChildDist.dist > stretchMinDist ? (realChildDist.dist - stretchMinDist) * maxVel / stretchMaxDist : 0;
+                        let xvecResult = Math.cos(t.hb.ang) * t.hb.mag - Math.cos(realChildDist.angle) * newM;
+                        let yvecResult = Math.sin(t.hb.ang) * t.hb.mag - Math.sin(realChildDist.angle) * newM;
+                        let newAng = Math.atan2(yvecResult, xvecResult) || 0;
+                        t.hb.ang = newAng;
+                        t.hb.mag -= newM;
+                        if (t.hb.mag < 0) t.hb.mag *= -4;
+                        t.rope.update(holdPoint);
+                    }
+                    t.hb.move();
                 }
                 //ResolveShortClick must always be falsed even if action is not taken
                 resolveShortClick = false;

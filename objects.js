@@ -1,3 +1,5 @@
+var spriteSheet = new Image();
+spriteSheet.src = "sprite.png";
 function genHb(x,y,w,h){
     return{
         mag: 0,
@@ -10,14 +12,38 @@ function genHb(x,y,w,h){
             let t = this;
             let xVar = Math.cos(t.ang)*t.mag;
             let yVar = Math.sin(t.ang)*t.mag;
-            let a = {...t}, b = {...t};
-            a.x += xVar - w/2;
-            b.y += yVar - h/2;
+            let a = genHb(t.x,t.y,t.w,t.h);
+            let b = genHb(t.x,t.y,t.w,t.h);
+            a.x += xVar;
+            b.y += yVar;
             if(a.x > 10 && a.x+t.w < 990){
-                t.x += xVar;
+                let collision = false;
+                stage.sockets.forEach(function(socket){
+                    if(a.checkColission(socket.hb)){
+                        collision = true;
+                    }
+                })
+                if(!collision){
+                    t.x += xVar;
+                }
+                // if(stage.sockets.filter(soc => soc.hb.checkColission(a)).length < 1){
+                //     t.x += xVar;
+                // }
+
             }
             if(b.y > 10 && b.y+t.h < 990){
-                t.y += yVar;
+                let collision = false;
+                stage.sockets.forEach(function(socket){
+                    if(b.checkColission(socket.hb)){
+                        collision = true;
+                    }
+                })
+                if(!collision){
+                    t.y += yVar;
+                }
+                // if(stage.sockets.filter(soc => soc.hb.checkColission(b)).length < 1){
+                //     t.y += yVar;
+                // }
             }
         },
         //TODO: Chekc if necesarry to keep this function
@@ -114,7 +140,11 @@ function genMuncher(x,y){
             }
             t.hb.move();
             ctx.fillText(fillText, t.hb.x - t.hb.w + 10, t.hb.y - t.hb.h/2 - 10);
-            ctx.fillRect(t.hb.x - t.hb.w/2,t.hb.y - t.hb.w/2,t.hb.w,t.hb.h);
+            ctx.save();
+            ctx.scale(-1, 1);
+            ctx.drawImage(spriteSheet, 0,0,22,21,-(t.hb.x - t.hb.w/2),t.hb.y - t.hb.w/2,44,42);
+            ctx.restore();
+            // ctx.fillRect(t.hb.x - t.hb.w/2,t.hb.y - t.hb.w/2,t.hb.w,t.hb.h);
             // ctx.strokeStyle = 'red';
             // ctx.strokeRect(t.hb.x - 1,t.hb.y - 1,1,1);
             // ctx.beginPath();
