@@ -30,10 +30,10 @@ function Player(initX, initY){
                         t.rope = null;
                     }
                     t.rope = null;
-                } else if (rop = stage.ropes.find(rope => t.getDist(rope.center()).dist < 50)) {
+                } else if (rop = stage.ropes.find(rope => t.getDist(rope).dist < 50)) {
                     //Conditions: must be close to the mouse pos && not already attached to a socket
                     if (rop.getDist(mousePos).dist < 20 && !rop.attached){
-                        rop.attach(t, rop);
+                        rop.attach(t, mousePos);
                     }
                 } else if (!t.dashCoolDown && (Date.now() - lastMouseUp < 270)) {
                     let distFromMouse = t.getDist(mousePos);
@@ -104,7 +104,7 @@ function Player(initX, initY){
         ctx.stroke();
     }
     t.getHoldPoint = ()=>{
-        let childDist = t.getDist(t.rope.center());
+        let childDist = t.getDist(t.rope);
         return {x: t.cX() - childDist.normalX * HOLD_RADIUS, y: t.cY() - childDist.normalY * HOLD_RADIUS}
     }
     t.impact = (enemyAngle) => {

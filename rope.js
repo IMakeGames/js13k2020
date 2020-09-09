@@ -12,7 +12,7 @@ function RopeSection(initX, initY, amount, color= colorBlue){
     t.child = amount > 0 ? new RopeSection(initX, initY, amount -1, color) : null;
     t.frameCounter = 0;
     t.parent = null;
-    t.setVals(initX, initY, ROPE_SECTION_WIDTH, ROPE_SECTION_HEIGHT);
+    t.setVals(initX, initY, 0, 0);
 
     t.update = (fixedHb) =>{
         let tries = 31;
@@ -31,7 +31,7 @@ function RopeSection(initX, initY, amount, color= colorBlue){
             munch.triggerFood(t);
         }
         let distMc = t.getDist(PLAYER.center());
-        let maxDist = (t.w + PLAYER.w)/1.5;
+        let maxDist = (ROPE_SECTION_WIDTH + PLAYER.w)/1.5;
         if(distMc.dist <= maxDist){
             bool = false;
             let per = distMc.dist/maxDist;
@@ -48,7 +48,7 @@ function RopeSection(initX, initY, amount, color= colorBlue){
         }
         if(t.child){
             if(!t.child.parent) t.child.parent = t;
-            let dist = t.getDist(t.child.center());
+            let dist = t.getDist(t.child);
             if(dist.dist > LINK_DIST_CONSTRAINT){
                 bool = false;
                 t.x += dist.translateX;
@@ -96,7 +96,7 @@ function RopeSection(initX, initY, amount, color= colorBlue){
             let per = t.frameCounter/ROPE_ANIMATION_FRAMES;
             let invPer = 1 - per;
             let radius = 40*per;
-            ctx.arc(t.cX(), t.cY(), radius,0, 2 * Math.PI, false);
+            ctx.arc(t.x, t.y, radius,0, 2 * Math.PI, false);
             ctx.lineWidth = 10;
             ctx.strokeStyle = 'rgba('+color+', '+ invPer +')';
             ctx.stroke();
@@ -110,8 +110,8 @@ function RopeSection(initX, initY, amount, color= colorBlue){
             ctx.strokeStyle = 'rgba('+color+')';
             ctx.lineCap = "round"
             ctx.beginPath();
-            ctx.moveTo(t.cX(), t.cY());
-            ctx.lineTo(t.child.cX(),t.child.cY());
+            ctx.moveTo(t.x, t.y);
+            ctx.lineTo(t.child.x, t.child.y);
             ctx.stroke();
             t.child.draw();
         }
@@ -125,7 +125,7 @@ function RopeSection(initX, initY, amount, color= colorBlue){
         if(debugMode){
             ctx.lineWidth = 1;
             ctx.strokeStyle = '#003300';
-            ctx.strokeRect(t.x, t.y, 5, 5);
+            ctx.strokeRect(t.x - ROPE_SECTION_WIDTH/2, t.y-ROPE_SECTION_HEIGHT/2, 5, 5);
         }
     };
 }
@@ -148,11 +148,14 @@ function Socket(x,y,type,dir,amount,color = colorBlue){
     let rectW = socketWidth + 10;
     let rectH = socketHeight - 5;
     if(dir == "left"){
-        t.conPt = [x + 40, y + 23];
+        t.conPt = [x + 38, y + 26];
+        t.setVals(x,y,SOCKET_WIDTH, SOCKET_HEIGHT);
     }else if(dir == "right"){
         xoffset = 10;
-        t.conPt = [x, y + 23];
+        t.conPt = [x + 3, y + 26];
+        t.setVals(x,y,SOCKET_WIDTH, SOCKET_HEIGHT);
     }else{
+        t.setVals(x,y,SOCKET_HEIGHT, SOCKET_WIDTH);
         yAdded = 0;
         xAdded = 35;
         xAdded2 = 15;
@@ -163,12 +166,11 @@ function Socket(x,y,type,dir,amount,color = colorBlue){
         rectH = socketHeight + 10;
     }
     if(dir == "up"){
-        t.conPt = [x + 22, y + 40];
+        t.conPt = [x + 24, y + 40];
     }else if(dir == "down"){
         yoffset = 10;
-        t.conPt = [x + 22, y];
+        t.conPt = [x + 24, y];
     }
-    t.setVals(x,y,socketWidth, socketHeight);
     t.type = type;
     t.connection = null;
     t.color = color;

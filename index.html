@@ -17,7 +17,7 @@
 <script>
     //========= SETS UP GLOBAL VARIABLES
     var main = document.getElementById("main");
-    var debugMode = false;
+    var debugMode = true;
     var ctx = main.getContext("2d");
     var mousePos = {x: 0, y: 0}
     var isMousePressed = false;
@@ -94,10 +94,10 @@
         let interval = dateNow - lastTime;
         lastTime = dateNow;
         let frameRate = 1000/interval;
-        // ctx.fillStyle = "white"
-        // ctx.font = '25px serif';
-        // ctx.fillText('player speed: ' + PLAYER.mag.toFixed(3), 50, 850);
-        // ctx.fillText('framerate: ' + frameRate.toFixed(3), 50, 850);
+        ctx.fillStyle = "white"
+        ctx.font = '25px serif';
+        ctx.fillText('player speed: ' + PLAYER.mag.toFixed(3), 50, 910);
+        //ctx.fillText('framerate: ' + frameRate.toFixed(3), 50, 850);
         if(gameState == "menu"){
 
         }
