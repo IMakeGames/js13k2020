@@ -13,11 +13,11 @@ let stage1 = ()=>{
             t.holes.forEach(hole => hole.update());
         },
         setup(t){
-            let socket1 = genSocket(480, 10, "origin","up", 90);
-            let socket2 = genSocket(480, 950, "win", "down");
+            let socket1 = new Socket(480, 10, "origin","up", 90);
+            let socket2 = new Socket(480, 950, "win", "down");
             spawnPoint.x = 100;
             spawnPoint.y = 100;
-            playa.goToSpawn();
+            PLAYER.goToSpawn();
             t.sockets = [socket1, socket2];
             t.ropes = [socket1.rope];
             t.loaded = true;
@@ -40,12 +40,12 @@ let stage2 = ()=>{
             t.sockets.forEach(socket => socket.update());
         },
         setup(t){
-            let socket1 = genSocket(950, 700, "origin","right", 30);
-            let socket2 = genSocket(480, 950, "win", "down");
+            let socket1 = new Socket(950, 700, "origin","right", 30);
+            let socket2 = new Socket(480, 950, "win", "down");
             let holes= genHoles([hole(10,300,365,75), hole(300,10,75,365)])
             spawnPoint.x = 100;
             spawnPoint.y = 100;
-            playa.goToSpawn();
+            PLAYER.goToSpawn();
             t.sockets = [socket1, socket2];
             t.ropes = [socket1.rope];
             t.holes = holes;
@@ -54,10 +54,10 @@ let stage2 = ()=>{
     }
 }
 let stage3 = ()=>{
-    let socket1 = genSocket(480, 10, "origin","up", 40);
-    let socket2 = genSocket(10, 480, "end","left");
-    let socket3 = genSocket(950, 480, "end", "right");
-    let socket4 = genSocket(480, 950, "win", "down");
+    let socket1 = new Socket(480, 10, "origin","up", 40);
+    let socket2 = new Socket(10, 480, "end","left");
+    let socket3 = new Socket(950, 480, "end", "right");
+    let socket4 = new Socket(480, 950, "win", "down");
     socket2.connection = socket3;
     return {
         enemies: [],
@@ -73,7 +73,7 @@ let stage3 = ()=>{
 }
 let stage4 = ()=>{
     return {
-        enemies: [genMuncher(900,100)],
+        enemies: [new Byter(900,100)],
         loaded: false,
         sockets: null,
         ropes: null,
@@ -85,13 +85,13 @@ let stage4 = ()=>{
             t.enemies.forEach(enemy => enemy.update());
         },
         setup(t){
-            let socket1 = genSocket(10, 480, "origin","left", 50, colorRed);
-            let socket2 = genSocket(950, 480, "end", "right", colorBlue);
-            let socket3 = genSocket(480, 10, "origin","up", 90);
-            let socket4 = genSocket(480, 950, "win", "down", colorBlue);
+            let socket1 = new Socket(10, 465, "origin","left", 50, colorRed);
+            let socket2 = new Socket(950, 465, "end", "right");
+            let socket3 = new Socket(480, 10, "origin","up", 90);
+            let socket4 = new Socket(480, 950, "win", "down");
             spawnPoint.x = 100;
             spawnPoint.y = 100;
-            playa.goToSpawn();
+            PLAYER.goToSpawn();
             socket1.rope.attach(socket2, socket2.conPt);
             t.sockets = [socket1, socket2, socket3, socket4];
             t.ropes = [socket1.rope, socket3.rope];
@@ -215,13 +215,13 @@ var hole = (x,y,w,h)=>{
         timerStamp: 0,
         update(){
             let t = this;
-            let playaX = playa.hb.x - playa.hb.w/2;
-            let playaY = playa.hb.y - playa.hb.h/2;
-            if(playaX >= t.hb.x && playaX+playa.hb.w <= t.hb.x + t.hb.w && playaY >= t.hb.y && playaY+playa.hb.h <= t.hb.y + t.hb.h){
+            let playaX = PLAYER.x - PLAYER.w/2;
+            let playaY = PLAYER.y - PLAYER.h/2;
+            if(playaX >= t.hb.x && playaX+PLAYER.w <= t.hb.x + t.hb.w && playaY >= t.hb.y && playaY+PLAYER.h <= t.hb.y + t.hb.h){
                 if(!t.timerStamp){
                     t.timerStamp = Date.now();
-                }else if(Date.now() - t.timerStamp >= timeBeforeFall && playa.state != "falling"){
-                    playa.triggerFall();
+                }else if(Date.now() - t.timerStamp >= timeBeforeFall && PLAYER.state != "falling"){
+                    PLAYER.triggerFall();
                 }
             }else{
                 t.timerStamp = 0;

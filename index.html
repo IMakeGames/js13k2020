@@ -17,12 +17,13 @@
 <script>
     //========= SETS UP GLOBAL VARIABLES
     var main = document.getElementById("main");
+    var debugMode = false;
     var ctx = main.getContext("2d");
     var mousePos = {x: 0, y: 0}
     var isMousePressed = false;
     var lastMouseUp = 0;
     var lastMouseDown = 0;
-    var resolveShortClick = false;
+    var RESOLVE_SHORT_CLICK = false;
     var mouseAcc = 1;
     var dashAcc = 4;
     var dashMaxVel = 32;
@@ -58,7 +59,7 @@
         isMousePressed = false;
         if(Date.now() - lastMouseDown < 117){
             console.log("short click");
-            resolveShortClick = true;
+            RESOLVE_SHORT_CLICK = true;
         }else{
             lastMouseUp = Date.now();
         }
@@ -72,12 +73,12 @@
     //=========
 
     //Stage is defined here
-    var playa = genPj(0,0);
+    var PLAYER = new Player(0,0);
     var stages = [stage1(),stage2(),stage3(), stage4()];
     var stage = stages[currentStage];
     let triggerWin = ()=>{
-        playa.hb.x = 100;
-        playa.hb.y = 100;
+        PLAYER.x = 100;
+        PLAYER.y = 100;
         gameState = "win";
         currentStage++;
         messageFrames = 120;
@@ -95,6 +96,7 @@
         let frameRate = 1000/interval;
         // ctx.fillStyle = "white"
         // ctx.font = '25px serif';
+        // ctx.fillText('player speed: ' + PLAYER.mag.toFixed(3), 50, 850);
         // ctx.fillText('framerate: ' + frameRate.toFixed(3), 50, 850);
         if(gameState == "menu"){
 
@@ -103,7 +105,7 @@
             //========= DISPLAY AND UPDATE EVERYTHING
             background.update();
             stage.update();
-            playa.update();
+            PLAYER.update();
             //=========
             //========= DISPLAY HEALTH
             ctx.fillStyle= 'green'
@@ -116,7 +118,7 @@
             let initx = 25;
             for(let i = 1;i<= totalHp;i++){
                 ctx.strokeRect(initx, y, width, height);
-                if(playa.health >= i){
+                if(PLAYER.health >= i){
                     ctx.fillRect(initx+5, y+5, width-10, height-10);
                 }
                 initx+= 10 + width;
