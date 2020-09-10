@@ -30,9 +30,8 @@
     var maxVel = 6;
     var gameState = "playing";
 
-    var currentStage = 3;
+    var currentStage = 4;
 
-    var spawnPoint = {x: 100,y: 100};
     var messageFrames = 0;
     var background = genBackground();
     var colorRed = "255,0,0";
@@ -77,7 +76,7 @@
 
     //Stage is defined here
     var PLAYER = new Player(0,0);
-    var stages = [stage1, stage2,stage3, stage4];
+    var stages = [stage1, stage2,stage3, stage4, stage5];
     var stage = stages[currentStage];
     let triggerWin = ()=>{
         PLAYER.x = 100;

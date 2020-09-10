@@ -2,88 +2,78 @@ function Stage(setup){
     let t = this;
     t.enemies = [];
     t.sockets = [];
-    t.holes = [];
+    t.holes = null;
     t.ropes = [];
 
     t.update = ()=>{
         if(!t.loaded) t.setup();
+        if(t.holes){
+            t.holes.update();
+        }
         t.enemies.forEach(enemy => enemy.update());
         t.sockets.forEach(socket => socket.update());
         t.ropes.forEach(rope => !rope.attached ? rope.update():null);
-        t.holes.update();
     }
 
     t.setup = ()=>{
-        let vars = setup();
+        setup(t);
         PLAYER.goToSpawn();
-        t.sockets =vars.sockets;
-        t.ropes = vars.ropes;
-        t.holes = vars.holes || genHoles([]);
-        t.enemies = vars.enemies || [];
         t.loaded = true;
     }
 }
 
-var stage1 = new Stage(function(){
-    let socket1 = new Socket(480, 10, "origin","up", 90, colorBlue);
-    let socket2 = new Socket(480, 950, "win", "down");
-    spawnPoint.x = 100;
-    spawnPoint.y = 100;
-    return{
-        sockets: [socket1, socket2],
-        ropes: [socket1.rope]
-    }
+var stage1 = new Stage(function(t){
+    t.sockets = [new Socket(480, 10, "origin","up", 90, colorBlue)];
+    t.sockets.push(new Socket(480, 950, "win", "down"));
+    t.ropes = [t.sockets[0].rope];
+    PLAYER.spawnPoint.x = 100;
+    PLAYER.spawnPoint.y = 100;
 });
 
-var stage2 = new Stage(function(){
-    let socket1 = new Socket(950, 700, "origin","right", 40,colorBlue);
-    let socket2 = new Socket(480, 950, "win", "down");
-    let holes= genHoles([new Hole(10,300,365,75), new Hole(300,10,75,365)])
-    spawnPoint.x = 100;
-    spawnPoint.y = 100;
-    return{
-        sockets: [socket1, socket2],
-        ropes: [socket1.rope],
-        holes: holes
-    }
+var stage2 = new Stage(function(t){
+    t.sockets = [new Socket(950, 700, "origin","right", 40,colorBlue)];
+    t.sockets.push(new Socket(480, 950, "win", "down"));
+    t.holes = genHoles([new Hole(10,300,365,75), new Hole(300,10,75,365)])
+    t.ropes = [t.sockets[0].rope]
+    PLAYER.spawnPoint.x = 100;
+    PLAYER.spawnPoint.y = 100;
 });
 
-var stage3 = new Stage(function(){
-    let socket1 = new Socket(480, 10, "origin","up", 50, colorBlue);
-    let socket2 = new Socket(10, 480, "con","left");
-    let socket3 = new Socket(950, 480, "con", "right");
-    let socket4 = new Socket(480, 950, "win", "down");
-    socket2.setConnection(socket3);
-    spawnPoint.x = 100;
-    spawnPoint.y = 100;
-    return {
-        sockets: [socket1, socket2, socket3, socket4],
-        ropes: [socket1.rope],
-    }
+var stage3 = new Stage(function(t){
+    t.sockets = [new Socket(480, 10, "origin","up", 50, colorBlue)];
+    t.sockets.push(new Socket(10, 480, "con","left"));
+    t.sockets.push(new Socket(950, 480, "con", "right"));
+    t.sockets.push(new Socket(480, 950, "win", "down"));
+    t.sockets[1].setConnection(t.sockets[2]);
+    t.ropes = [t.sockets[0].rope];
+    PLAYER.spawnPoint.x = 100;
+    PLAYER.spawnPoint.y = 100;
 });
 
-var stage4 = new Stage(function(){
-    let socket1 = new Socket(10, 465, "origin","left", 50, colorRed);
-    let socket2 = new Socket(950, 465, "end", "right");
-    let socket3 = new Socket(480, 10, "origin","up", 90,colorBlue);
-    let socket4 = new Socket(480, 950, "win", "down");
-    let enemy = new Byter(900,100);
-    spawnPoint.x = 100;
-    spawnPoint.y = 100;
-    socket1.rope.attach(socket2, socket2.conPt);
-    return {
-        sockets: [socket1, socket2, socket3, socket4],
-        ropes: [socket1.rope, socket3.rope],
-        enemies: [enemy]
-    }
+var stage4 = new Stage(function(t){
+    t.sockets = [new Socket(10, 465, "origin","left", 50, colorRed)];
+    t.sockets.push(new Socket(950, 465, "end", "right"));
+    t.sockets.push(new Socket(480, 10, "origin","up", 90,colorBlue));
+    t.sockets.push(new Socket(480, 950, "win", "down"));
+    t.enemies = [new Byter(900,100)];
+    t.ropes = [t.sockets[0].rope, t.sockets[2].rope];
+    PLAYER.spawnPoint.x = 100;
+    PLAYER.spawnPoint.y = 100;
+    t.sockets[0].rope.attach(t.sockets[1], t.sockets[1].conPt);
 });
 
-// var stage5 = new Stage(function () {
-//     let socket1 = new Socket(10, 465, "origin", "left", 50, colorRed);
-//     let socket2 = new Socket(950, 465, "end", "right");
-//     let socket3 = new Socket(480, 10, "origin", "up", 90, colorBlue);
-//     let socket4 = new Socket(480, 950, "win", "down");
-// })
+var stage5 = new Stage(function (t) {
+    t.sockets = [new Socket(480, 10, "origin","up", 50, colorBlue)];
+    t.sockets.push(new Socket(10, 425, "con","left"));
+    t.sockets.push(new Socket(950, 505, "con", "right"));
+    t.sockets.push(new Socket(425, 950, "win", "down"));
+    t.holes= genHoles([new Hole(0,510,600,100), new Hole(400,390,600,100)])
+    t.enemies = [new Byter(810,810)];
+    t.ropes = [t.sockets[0].rope];
+    t.sockets[1].setConnection(t.sockets[2]);
+    PLAYER.spawnPoint.x = 100;
+    PLAYER.spawnPoint.y = 850;
+})
 
 var genHoles = (holeList)=>{
     let hidden = document.createElement('canvas');
@@ -189,21 +179,11 @@ var genHoles = (holeList)=>{
         }
     }
 }
-var TIME_BEFORE_FALL = 50;
+
 function Hole(x,y,w,h){
     let t = this;
     t.setVals(x,y,w,h);
-    t.timerStamp = 0;
     t.update = ()=>{
-        if(PLAYER.x >= t.x && PLAYER.x+PLAYER.w <= t.x + t.w && PLAYER.y >= t.y && PLAYER.y + PLAYER.h <= t.y + t.h){
-            if(!t.timerStamp){
-                t.timerStamp = Date.now();
-            }else if(Date.now() - t.timerStamp >= TIME_BEFORE_FALL && PLAYER.state != "falling"){
-                PLAYER.triggerFall();
-            }
-        }else{
-            t.timerStamp = 0;
-        }
         return t;
     }
 }

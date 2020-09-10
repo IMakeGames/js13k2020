@@ -4,9 +4,6 @@ var HOLD_RADIUS = 22;
 var AFTER_DASH_CD = 10;
 var TOTAL_DASH_CD = 50;
 var TOTAL_DASH_FRAMES = 10;
-var MIN_STRETCH_DIST = 5;
-var MAX_STRETCH_DIST = 8;
-var FALL_FRAMES_HALVED = 30;
 function Player(initX, initY){
     let t = this;
     t.setVals(initX, initY, PLAYER_WIDTH, PLAYER_HEIGHT);
@@ -73,6 +70,7 @@ function Player(initX, initY){
                     t.dashCoolDown = TOTAL_DASH_CD;
                 }
             }
+            t.checkFall();
         }else{
             if(t.frameCounter >= FALL_FRAMES_HALVED){
                 scale = (t.frameCounter - FALL_FRAMES_HALVED)/FALL_FRAMES_HALVED;
@@ -108,13 +106,12 @@ function Player(initX, initY){
         t.state = "falling"
         t.deductHealth();
         t.dashFrames = 0;
+        if(t.rope){
+            t.rope.detach();
+            t.rope = null;
+        }
         t.frameCounter = FALL_FRAMES_HALVED*2;
         t.mag = 0;
-    }
-    t.goToSpawn = ()=>{
-        let t = this;
-        t.x = spawnPoint.x;
-        t.y = spawnPoint.y;
     }
     t.deductHealth = ()=>{
         t.health--;
