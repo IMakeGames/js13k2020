@@ -5,7 +5,7 @@ var ROPE_SECTION_WIDTH = 5;
 var PLAYER_MIN_DIST = 17;
 var PLAYER_MAX_DIST = 23;
 var ROPE_SECTION_HEIGHT = 5;
-
+var WIN_FRAMES = 180;
 function RopeSection(initX, initY, amount, color){
     let t = this;
     t.attached = null;
@@ -14,6 +14,9 @@ function RopeSection(initX, initY, amount, color){
     t.amount = amount;
     t.child = amount > 0 ? new RopeSection(initX, initY, amount -1, color) : null;
     t.animationFrameCounter = 0;
+    t.ropeAnimationFrames = ROPE_ANIMATION_FRAMES;
+    t.state = "normal";
+    t.currentOutlineDelay = 0;
     t.recolecting = false;
     t.recolectionFrameCounter = 0;
     t.parent = null;
@@ -99,9 +102,26 @@ function RopeSection(initX, initY, amount, color){
         t.stopRecolection();
         if(el instanceof Socket){
             el.color = color;
+            if(el.type == "win"){
+                t.setOutlineAnimDelay(0,Math.round(t.amount/5)*10);
+            }
         }
         t.update(holdPt);
     };
+
+    t.setOutlineAnimDelay = (n,i)=>{
+        if(!n){
+            t.state = "connectedToVictory";
+            n = 5;
+            t.currentOutlineDelay = i;
+            i -= 10;
+        }else{
+            n--;
+        }
+        if(t.child){
+            t.child.setOutlineAnimDelay(n, i);
+        }
+    }
 
     t.detach = ()=>{
         t.attached = null;
@@ -141,11 +161,31 @@ function RopeSection(initX, initY, amount, color){
         }
     }
 
-    t.destroy = () =>{
+    t.consume = () =>{
         t.child.parent = null;
-        stage.ropes =[stage.ropes[1],t.child, t];
+        t.child.setForDestroy(60);
+        stage.ropes = stage.ropes.filter(rope => rope !== t.getParent()).concat([t,t.child]);
         t.reverse();
-    };
+        t.setForDestroy(60);
+    }
+
+    t.setForDestroy = (delay)=>{
+        t.state = "destroy";
+        t.currentOutlineDelay = delay;
+        t.ropeAnimationFrames = 10;
+        t.animationFrameCounter = 0;
+        if(t.child){
+            t.child.setForDestroy(delay + 10);
+        }
+    }
+
+    t.destroy = ()=>{
+        stage.ropes = stage.ropes.filter(rope => rope !== t);
+        if(t.child){
+            t.child.parent = null;
+            stage.ropes.push(t.child);
+        }
+    }
 
     t.reverse = ()=>{
         t.child = t.parent;
@@ -160,23 +200,15 @@ function RopeSection(initX, initY, amount, color){
     };
 
     t.draw = ()=>{
-        if(!t.parent && !t.attached && color != colorRed){
-            ctx.beginPath();
-            let per = t.animationFrameCounter/ROPE_ANIMATION_FRAMES;
-            let invPer = 1 - per;
-            let radius = 40*per;
-            ctx.arc(t.x, t.y, radius,0, 2 * Math.PI, false);
-            ctx.lineWidth = 10;
-            ctx.strokeStyle = 'rgba('+color+', '+ invPer +')';
-            ctx.stroke();
-            t.animationFrameCounter++;
-            if(t.animationFrameCounter > ROPE_ANIMATION_FRAMES){
-                t.animationFrameCounter = 0;
-            }
+        if(t.state != "normal" && t.currentOutlineDelay){
+            t.currentOutlineDelay--;
+        }
+        if((!t.parent && !t.attached && color != colorRed) || (t.state != "normal" && !t.currentOutlineDelay)){
+            t.drawOutline(t.state == "destroy" ? "255,255,255" : null);
         }
         if(t.child){
             ctx.lineWidth = 15;
-            ctx.strokeStyle = 'rgba('+color+')';
+            ctx.strokeStyle = 'rgb('+((t.state == "destroy" && !t.currentOutlineDelay)? "255,255,255" : color)+')';
             ctx.lineCap = "round"
             ctx.beginPath();
             ctx.moveTo(t.x, t.y);
@@ -197,6 +229,25 @@ function RopeSection(initX, initY, amount, color){
             ctx.strokeRect(t.x - ROPE_SECTION_WIDTH/2, t.y-ROPE_SECTION_HEIGHT/2, 5, 5);
         }
     };
+    t.drawOutline = (col) =>{
+        ctx.beginPath();
+        let per = t.animationFrameCounter/t.ropeAnimationFrames;
+        let invPer = 1 - per;
+        let radius = 40*per;
+        ctx.arc(t.x, t.y, radius,0, 2 * Math.PI, false);
+        ctx.lineWidth = 25*invPer;
+        ctx.strokeStyle = 'rgba('+ (col ? col : color) +', '+ invPer +')';
+        ctx.stroke();
+        t.animationFrameCounter++;
+        if(t.animationFrameCounter > t.ropeAnimationFrames){
+            //t.animationFrameCounter = 0;
+            if(t.state == "destroy"){
+                t.destroy();
+            }else{
+                t.animationFrameCounter = 0;
+            }
+        }
+    }
 }
 RopeSection.prototype = Hitbox();
 
@@ -250,16 +301,24 @@ function Socket(x,y,type,dir,amount,color){
         t.color = colorGray;
     }
     t.animationFrameCounter = SOCKET_ANIMATION_FRAMES/2;
-    t.rope = type == "origin" && amount > 0 ? new RopeSection(t.conPt[0],t.conPt[1],amount, color) : null;
+    t.winFrameCounter = 0;
+    t.amount = amount;
+    t.rope = type == "origin" && amount > 0 ? new RopeSection(t.conPt[0],t.conPt[1],t.amount, color) : null;
     t.update = ()=>{
-        if((t.type == "end" || t.type == "con") && t.rope){
+        if(t.type != "origin" && t.rope){
             if(t.connection && !t.connection.rope){
                 t.connection.color = t.color
+                t.connection.amount = t.rope.amount;
                 t.connection.rope = new RopeSection(t.connection.conPt[0], t.connection.conPt[1], t.rope.amount, t.color);
                 stage.ropes.push(t.connection.rope);
                 t.connection.type = "origin";
             }
             t.rope.update({x:t.conPt[0], y:t.conPt[1]});
+        }else if(t.type == "origin" && !stage.ropes.filter(rope => rope === t.rope).length){
+            if(!stage.ropes.filter(rope => rope === t.rope).length){
+                t.rope = new RopeSection(t.conPt[0],t.conPt[1],t.amount, t.color);
+                stage.ropes.push(t.rope);
+            }
         }
         ctx.fillStyle = '#00c745';
         ctx.fillRect(t.x - xoffset,t.y - yoffset,rectW,rectH);
@@ -278,20 +337,25 @@ function Socket(x,y,type,dir,amount,color){
         }
 
         if(t.type == "win"){
-            ctx.beginPath();
-            let per = t.animationFrameCounter/SOCKET_ANIMATION_FRAMES;
-            let invPer = 1 - per;
-            let radius = 40*invPer;
-            ctx.arc(t.conPt[0], t.conPt[1], radius,0, 2 * Math.PI, false);
-            ctx.lineWidth = 10;
-            ctx.strokeStyle = 'rgba(0, 0, 255, '+ per +')';
-            ctx.stroke();
-            t.animationFrameCounter++;
-            if(t.animationFrameCounter > SOCKET_ANIMATION_FRAMES){
-                t.animationFrameCounter = 0;
-            }
             if(t.rope){
-                triggerWin();
+                t.winFrameCounter++;
+                let eatingEnemies = stage.enemies.filter(en => en.state == "eating")
+                if(t.winFrameCounter > WIN_FRAMES && !eatingEnemies.length){
+                    triggerWin();
+                }
+            }else{
+                ctx.beginPath();
+                let per = t.animationFrameCounter/SOCKET_ANIMATION_FRAMES;
+                let invPer = 1 - per;
+                let radius = 40*invPer;
+                ctx.arc(t.conPt[0], t.conPt[1], radius,0, 2 * Math.PI, false);
+                ctx.lineWidth = 10;
+                ctx.strokeStyle = 'rgba(0, 0, 255, '+ per +')';
+                ctx.stroke();
+                t.animationFrameCounter++;
+                if(t.animationFrameCounter > SOCKET_ANIMATION_FRAMES){
+                    t.animationFrameCounter = 0;
+                }
             }
         }
     }

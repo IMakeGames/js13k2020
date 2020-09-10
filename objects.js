@@ -171,7 +171,7 @@ function Byter(x,y){
                             t.eatingFrameCounter--;
                             if (!t.eatingFrameCounter) {
                                 t.changeState("sleep");
-                                t.food.destroy();
+                                t.food.consume();
                                 t.food = null;
                             }
                         }

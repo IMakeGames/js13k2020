@@ -17,7 +17,6 @@
 <script>
     //========= SETS UP GLOBAL VARIABLES
     var main = document.getElementById("main");
-    var debugMode = true;
     var ctx = main.getContext("2d");
     var mousePos = {x: 0, y: 0}
     var isMousePressed = false;
@@ -31,6 +30,7 @@
     var gameState = "playing";
 
     var currentStage = 4;
+    var debugMode = false;
 
     var messageFrames = 0;
     var background = genBackground();
@@ -38,6 +38,7 @@
     var colorYellow = "255,255,0";
     var colorBlue = "0,0,255";
     var colorGray = "126,126,126";
+    var prepareWin = false;
     //Set all smoothing effects off
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
@@ -124,6 +125,9 @@
                     ctx.fillRect(initx+5, y+5, width-10, height-10);
                 }
                 initx+= 10 + width;
+            }
+            if(prepareWin){
+
             }
             //=========
         }
