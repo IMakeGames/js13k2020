@@ -17,7 +17,7 @@
 <script>
     //========= SETS UP GLOBAL VARIABLES
     var main = document.getElementById("main");
-    var debugMode = true;
+    var debugMode = false;
     var ctx = main.getContext("2d");
     var mousePos = {x: 0, y: 0}
     var isMousePressed = false;
@@ -29,7 +29,9 @@
     var dashMaxVel = 32;
     var maxVel = 6;
     var gameState = "playing";
-    var currentStage = 2;
+
+    var currentStage = 0;
+
     var spawnPoint = {x: 100,y: 100};
     var messageFrames = 0;
     var background = genBackground();
@@ -74,7 +76,7 @@
 
     //Stage is defined here
     var PLAYER = new Player(0,0);
-    var stages = [stage1(),stage2(),stage3(), stage4()];
+    var stages = [stage1, stage2,stage3, stage4];
     var stage = stages[currentStage];
     let triggerWin = ()=>{
         PLAYER.x = 100;

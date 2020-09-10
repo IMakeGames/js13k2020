@@ -1,114 +1,83 @@
-let stage1 = ()=>{
-    return {
-        enemies: [],
-        sockets: [],
-        holes: [],
-        ropes: [],
-        update: function(){
-            let t = this;
-            if(!t.loaded) t.setup(t);
-            t.enemies.forEach(enemy => enemy.update());
-            t.ropes.forEach(rope => !rope.attached ? rope.update():null);
-            t.sockets.forEach(socket => socket.update());
-            t.holes.forEach(hole => hole.update());
-        },
-        setup(t){
-            let socket1 = new Socket(480, 10, "origin","up", 90);
-            let socket2 = new Socket(480, 950, "win", "down");
-            spawnPoint.x = 100;
-            spawnPoint.y = 100;
-            PLAYER.goToSpawn();
-            t.sockets = [socket1, socket2];
-            t.ropes = [socket1.rope];
-            t.loaded = true;
-        }
+function Stage(setup){
+    let t = this;
+    t.enemies = [];
+    t.sockets = [];
+    t.holes = [];
+    t.ropes = [];
+
+    t.update = ()=>{
+        if(!t.loaded) t.setup();
+        t.enemies.forEach(enemy => enemy.update());
+        t.sockets.forEach(socket => socket.update());
+        t.ropes.forEach(rope => !rope.attached ? rope.update():null);
+        t.holes.update();
+    }
+
+    t.setup = ()=>{
+        let vars = setup();
+        PLAYER.goToSpawn();
+        t.sockets =vars.sockets;
+        t.ropes = vars.ropes;
+        t.holes = vars.holes || genHoles([]);
+        t.enemies = vars.enemies || [];
+        t.loaded = true;
     }
 }
-let stage2 = ()=>{
-    return {
-        enemies: [],
-        loaded: false,
-        sockets: null,
-        holes: null,
-        ropes: null,
-        update: function(){
-            let t = this;
-            if(!t.loaded) t.setup(t);
-            t.enemies.forEach(enemy => enemy.update());
-            t.ropes.forEach(rope => !rope.attached ? rope.update():null);
-            t.holes.update();
-            t.sockets.forEach(socket => socket.update());
-        },
-        setup(t){
-            let socket1 = new Socket(950, 700, "origin","right", 30);
-            let socket2 = new Socket(480, 950, "win", "down");
-            let holes= genHoles([new Hole(10,300,365,75), new Hole(300,10,75,365)])
-            spawnPoint.x = 100;
-            spawnPoint.y = 100;
-            PLAYER.goToSpawn();
-            t.sockets = [socket1, socket2];
-            t.ropes = [socket1.rope];
-            t.holes = holes;
-            t.loaded = true;
-        }
+
+var stage1 = new Stage(function(){
+    let socket1 = new Socket(480, 10, "origin","up", 90);
+    let socket2 = new Socket(480, 950, "win", "down");
+    spawnPoint.x = 100;
+    spawnPoint.y = 100;
+    return{
+        sockets: [socket1, socket2],
+        ropes: [socket1.rope]
     }
-}
-let stage3 = ()=>{
-    return {
-        enemies: [],
-        sockets: null,
-        loaded: false,
-        ropes: null,
-        update: function(){
-            let t = this;
-            if(!t.loaded) t.setup(t);
-            t.enemies.forEach(enemy => enemy.update());
-            t.ropes.forEach(rope => !rope.attached ? rope.update():null);
-            t.sockets.forEach(socket => socket.update());
-        },
-        setup(t){
-            let socket1 = new Socket(480, 10, "origin","up", 40);
-            let socket2 = new Socket(10, 480, "end","left");
-            let socket3 = new Socket(950, 480, "end", "right");
-            let socket4 = new Socket(480, 950, "win", "down");
-            socket2.connection = socket3;
-            spawnPoint.x = 100;
-            spawnPoint.y = 100;
-            PLAYER.goToSpawn();
-            t.sockets = [socket1, socket2, socket3, socket4];
-            t.ropes = [socket1.rope];
-            t.loaded = true;
-        }
+});
+
+var stage2 = new Stage(function(){
+    let socket1 = new Socket(950, 700, "origin","right", 40);
+    let socket2 = new Socket(480, 950, "win", "down");
+    let holes= genHoles([new Hole(10,300,365,75), new Hole(300,10,75,365)])
+    spawnPoint.x = 100;
+    spawnPoint.y = 100;
+    return{
+        sockets: [socket1, socket2],
+        ropes: [socket1.rope],
+        holes: holes
     }
-}
-let stage4 = ()=>{
+});
+
+var stage3 = new Stage(function(){
+    let socket1 = new Socket(480, 10, "origin","up", 50);
+    let socket2 = new Socket(10, 480, "end","left");
+    let socket3 = new Socket(950, 480, "end", "right");
+    let socket4 = new Socket(480, 950, "win", "down");
+    socket2.connection = socket3;
+    spawnPoint.x = 100;
+    spawnPoint.y = 100;
     return {
-        enemies: [new Byter(900,100)],
-        loaded: false,
-        sockets: null,
-        ropes: null,
-        update(){
-            let t = this;
-            if(!t.loaded) t.setup(t);
-            t.ropes.forEach(rope => !rope.attached ? rope.update():null);
-            t.sockets.forEach(socket => socket.update());
-            t.enemies.forEach(enemy => enemy.update());
-        },
-        setup(t){
-            let socket1 = new Socket(10, 465, "origin","left", 50, colorRed);
-            let socket2 = new Socket(950, 465, "end", "right");
-            let socket3 = new Socket(480, 10, "origin","up", 90);
-            let socket4 = new Socket(480, 950, "win", "down");
-            spawnPoint.x = 100;
-            spawnPoint.y = 100;
-            PLAYER.goToSpawn();
-            socket1.rope.attach(socket2, socket2.conPt);
-            t.sockets = [socket1, socket2, socket3, socket4];
-            t.ropes = [socket1.rope, socket3.rope];
-            t.loaded = true;
-        }
+        sockets: [socket1, socket2, socket3, socket4],
+        ropes: [socket1.rope],
     }
-}
+});
+
+var stage4 = new Stage(function(){
+    let socket1 = new Socket(10, 465, "origin","left", 50, colorRed);
+    let socket2 = new Socket(950, 465, "end", "right");
+    let socket3 = new Socket(480, 10, "origin","up", 90);
+    let socket4 = new Socket(480, 950, "win", "down");
+    let enemy = new Byter(900,100);
+    spawnPoint.x = 100;
+    spawnPoint.y = 100;
+    socket1.rope.attach(socket2, socket2.conPt);
+    return {
+        sockets: [socket1, socket2, socket3, socket4],
+        ropes: [socket1.rope, socket3.rope],
+        enemies: [enemy]
+    }
+});
+
 var genHoles = (holeList)=>{
     let hidden = document.createElement('canvas');
     hidden.width = 60;
@@ -175,14 +144,14 @@ var genHoles = (holeList)=>{
             ctxHidden.clearRect(0, 0, ctxHidden.canvas.width, ctxHidden.canvas.height);
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             let gv = [
-                [0, 0, 30, 30],
-                [60, 0, 30, 30],
-                [0, 60, 30, 30],
-                [60, 60, 30, 30]
+                [0, 0],
+                [60, 0],
+                [0, 60],
+                [60, 60]
             ];
             //CREATE GRADIENTS
             for(let i = 0; i < 4; i++){
-                t.gradients.push(ctxHidden.createLinearGradient(gv[i][0],gv[i][1],gv[i][2],gv[i][3]));
+                t.gradients.push(ctxHidden.createLinearGradient(gv[i][0],gv[i][1],30,30));
             }
             let order = [0,1,2,3,2,1,0];
 
@@ -194,25 +163,16 @@ var genHoles = (holeList)=>{
                     }
                     t.colors[i][j] += t.signs[i][j];
                 }
-                // for(let k = 0;k<order.length;k++){
-                //     t.gradients[i].addColorStop(t.stops[k],'rgb('+t.colors[order[k]][0]+', '+t.colors[order[k]][1]+', '+t.colors[order[k]][2]+')');
-                // }
             }
+            //CREATE COLOR STOPS AND DRAW GRADIENTS
             for(let i = 0;i < 4;i++) {
+                let gradient = t.gradients[i];
                 for(let k = 0;k<order.length;k++){
-                    t.gradients[i].addColorStop(t.stops[k],'rgb('+t.colors[order[k]][0]+', '+t.colors[order[k]][1]+', '+t.colors[order[k]][2]+')');
+                    gradient.addColorStop(t.stops[k],'rgb('+t.colors[order[k]][0]+', '+t.colors[order[k]][1]+', '+t.colors[order[k]][2]+')');
                 }
+                ctxHidden.fillStyle = gradient;
+                ctxHidden.fillRect(gv[i][0]/2,gv[i][1]/2,30,30);
             }
-
-            //DRAW THE GRADIENTS
-            ctxHidden.fillStyle = t.gradients[0];
-            ctxHidden.fillRect(0, 0, 30, 30);
-            ctxHidden.fillStyle = t.gradients[1];
-            ctxHidden.fillRect(30,0,30,30);
-            ctxHidden.fillStyle = t.gradients[2];
-            ctxHidden.fillRect(0, 30, 30, 30);
-            ctxHidden.fillStyle = t.gradients[3];
-            ctxHidden.fillRect(30,30,30,30);
 
             //MAKE PATTERN OUT OF CANVAS AND DRAW
             let pattern = ctx.createPattern(t.canvas, 'repeat');

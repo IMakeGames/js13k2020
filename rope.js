@@ -36,8 +36,9 @@ function RopeSection(initX, initY, amount, color= colorBlue){
         if(t.attached === PLAYER) {
             let distMc = t.getDist(PLAYER.center());
             if (distMc.dist > PLAYER_MAX_DIST) {
-                PLAYER.x += distMc.normalX * (distMc.dist -PLAYER_MAX_DIST);
-                PLAYER.y += distMc.normalY * (distMc.dist -PLAYER_MAX_DIST);
+                PLAYER.move(distMc.normalX * (distMc.dist -PLAYER_MAX_DIST), distMc.normalY * (distMc.dist -PLAYER_MAX_DIST));
+                // PLAYER.x += distMc.normalX * (distMc.dist -PLAYER_MAX_DIST);
+                // PLAYER.y += distMc.normalY * (distMc.dist -PLAYER_MAX_DIST);
             }
         }
         if(t.recolectionFrameCounter > 0){
@@ -67,10 +68,11 @@ function RopeSection(initX, initY, amount, color= colorBlue){
                 t.x += distMc.normalX*3*per;
                 t.y += distMc.normalY*3*per;
             }
-            PLAYER.x -= distMc.normalX*5*invPer;
-            PLAYER.y -= distMc.normalY*5*invPer;
+            // PLAYER.x -= distMc.normalX*5*invPer;
+            // PLAYER.y -= distMc.normalY*5*invPer;
+            PLAYER.move(-distMc.normalX*5*invPer, -distMc.normalY*5*invPer);
             //TODO: Check if there is a problem while recoiling: could go through rope. maybe.
-            PLAYER.mag = PLAYER.dashFrames ? -dashMaxVel/8 : -1*invPer;
+            PLAYER.mag = PLAYER.dashFrames ? -dashMaxVel/8 : PLAYER.mag;
         }
         if(t.child){
             if(!t.child.parent) t.child.parent = t;
@@ -212,7 +214,7 @@ function Socket(x,y,type,dir,amount,color = colorBlue){
         t.setVals(x,y,SOCKET_WIDTH, SOCKET_HEIGHT);
     }else if(dir == "right"){
         xoffset = 10;
-        t.conPt = [x + 3, y + 25];
+        t.conPt = [x + 2, y + 25];
         t.setVals(x,y,SOCKET_WIDTH, SOCKET_HEIGHT);
     }else{
         t.setVals(x,y,SOCKET_HEIGHT, SOCKET_WIDTH);
@@ -226,7 +228,7 @@ function Socket(x,y,type,dir,amount,color = colorBlue){
         rectH = socketHeight + 10;
     }
     if(dir == "up"){
-        t.conPt = [x + 25, y + 40];
+        t.conPt = [x + 25, y + 38];
     }else if(dir == "down"){
         yoffset = 10;
         t.conPt = [x + 25, y];
@@ -245,6 +247,17 @@ function Socket(x,y,type,dir,amount,color = colorBlue){
             }
             t.rope.update({x:t.conPt[0], y:t.conPt[1]});
         }
+        ctx.fillStyle = '#00c745';
+        ctx.fillRect(t.x - xoffset,t.y - yoffset,rectW,rectH);
+        ctx.fillRect(t.x - xoffset + xAdded,t.y - yoffset + yAdded,rectW,rectH);
+        ctx.fillStyle = "rgb("+t.color+")";
+        ctx.fillRect(t.x + xAdded2,t.y + yAdded2,socketWidth,socketHeight);
+        if(debugMode){
+            ctx.strokeStyle = 'pink';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(t.x,t.y,t.w,t.h);
+        }
+
         if(t.type == "win"){
             ctx.beginPath();
             let per = t.animationFrameCounter/SOCKET_ANIMATION_FRAMES;
@@ -261,16 +274,6 @@ function Socket(x,y,type,dir,amount,color = colorBlue){
             if(t.rope){
                 triggerWin();
             }
-        }
-        ctx.fillStyle = '#00c745';
-        ctx.fillRect(t.x - xoffset,t.y - yoffset,rectW,rectH);
-        ctx.fillRect(t.x - xoffset + xAdded,t.y - yoffset + yAdded,rectW,rectH);
-        ctx.fillStyle = "rgb("+t.color+")";
-        ctx.fillRect(t.x + xAdded2,t.y + yAdded2,socketWidth,socketHeight);
-        if(debugMode){
-            ctx.strokeStyle = 'pink';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(t.x,t.y,t.w,t.h);
         }
     }
 

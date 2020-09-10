@@ -15,42 +15,26 @@ function Hitbox(x,y,w,h){
             let t = this;
             return {x: t.cX(), y: t.cY()}
         },
-        move(){
+        move(varX, varY){
             let t = this;
-            let xVar = Math.cos(t.ang)*t.mag;
-            let yVar = Math.sin(t.ang)*t.mag;
+            let xVar = varX ? varX : Math.cos(t.ang)*t.mag;
+            let yVar = varY ? varY : Math.sin(t.ang)*t.mag;
             let a = Hitbox(t.x,t.y,t.w,t.h);
             let b = Hitbox(t.x,t.y,t.w,t.h);
             a.x += xVar;
             b.y += yVar;
             if(a.x > 10 && a.x+t.w < 990){
-                let collision = false;
-                stage.sockets.forEach(function(socket){
-                    if(a.checkColission(socket)){
-                        collision = true;
-                    }
-                })
-                if(!collision){
+                if(stage.sockets.filter(soc => a.checkColission(soc)).length < 1){
                     t.x += xVar;
                 }
-                // if(stage.sockets.filter(soc => soc.hb.checkColission(a)).length < 1){
-                //     t.x += xVar;
-                // }
+                // t.x += xVar;
 
             }
             if(b.y > 10 && b.y+t.h < 990){
-                let collision = false;
-                stage.sockets.forEach(function(socket){
-                    if(b.checkColission(socket)){
-                        collision = true;
-                    }
-                })
-                if(!collision){
+                if(stage.sockets.filter(soc => b.checkColission(soc)).length < 1){
                     t.y += yVar;
                 }
-                // if(stage.sockets.filter(soc => soc.hb.checkColission(b)).length < 1){
-                //     t.y += yVar;
-                // }
+                // t.y += yVar;
             }
         },
         getDist(hb2,constraint = 0){
