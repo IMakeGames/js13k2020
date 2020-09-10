@@ -17,7 +17,7 @@
 <script>
     //========= SETS UP GLOBAL VARIABLES
     var main = document.getElementById("main");
-    var debugMode = false;
+    var debugMode = true;
     var ctx = main.getContext("2d");
     var mousePos = {x: 0, y: 0}
     var isMousePressed = false;
@@ -30,7 +30,7 @@
     var maxVel = 6;
     var gameState = "playing";
 
-    var currentStage = 0;
+    var currentStage = 3;
 
     var spawnPoint = {x: 100,y: 100};
     var messageFrames = 0;

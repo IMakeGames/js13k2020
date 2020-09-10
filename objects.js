@@ -121,7 +121,8 @@ function Byter(x,y){
                 if(t.frameCounter > 0){
                     fillText = "🍗";
                 }else{
-                    let foodDist = t.getDist(t.food.center());
+                    t.food = t.getClosestLink(t.food, t.food.getParent());
+                    let foodDist = t.getDist(t.food);
                     if(foodDist.dist > 30){
                         t.x -= foodDist.normalX;
                         t.y -= foodDist.normalY;
@@ -162,7 +163,9 @@ function Byter(x,y){
         ctx.scale(-1, 1);
         ctx.drawImage(spriteSheet, 0,0,22,21,-t.x,t.y,44,42);
         ctx.restore();
-        //ctx.fillRect(t.x,t.y,t.w,t.h);
+        ctx.strokeStyle = "orange";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(t.x,t.y,t.w,t.h);
         // ctx.strokeStyle = 'red';
         // ctx.strokeRect(t.hb.x - 1,t.hb.y - 1,1,1);
         // ctx.beginPath();
@@ -178,6 +181,15 @@ function Byter(x,y){
             t.changeState("eating");
         }
     };
+    t.getClosestLink = (food, el)=>{
+        let closest = food
+        if(!el.child){
+            return closest;
+        }else if(t.getDist(el.child).dist < t.getDist(closest).dist){
+            closest = el.child;
+        }
+        return t.getClosestLink(closest, el.child);
+    }
     t.changeState = (state) =>{
         let t = this;
         t.frameCounter = state == "cooldown" ? 30 : 45;

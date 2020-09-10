@@ -121,6 +121,13 @@ function RopeSection(initX, initY, amount, color){
             t.child.stopRecolection();
         }
     }
+    t.getParent = ()=>{
+        if(!t.parent){
+            return t;
+        }else{
+            return t.parent.getParent();
+        }
+    }
 
     t.checkInOrigin = () =>{
         if(t.child){
