@@ -6,7 +6,7 @@ var PLAYER_MIN_DIST = 17;
 var PLAYER_MAX_DIST = 23;
 var ROPE_SECTION_HEIGHT = 5;
 
-function RopeSection(initX, initY, amount, color= colorBlue){
+function RopeSection(initX, initY, amount, color){
     let t = this;
     t.attached = null;
     t.fixedX = initX;
@@ -197,7 +197,7 @@ var SOCKET_ANIMATION_FRAMES = 100;
 var SOCKET_WIDTH = 40;
 var SOCKET_HEIGHT = 50;
 
-function Socket(x,y,type,dir,amount,color = colorBlue){
+function Socket(x,y,type,dir,amount,color){
     let t = this;
     let socketWidth = SOCKET_WIDTH;
     let socketHeight = SOCKET_HEIGHT - 30;
@@ -235,13 +235,20 @@ function Socket(x,y,type,dir,amount,color = colorBlue){
     }
     t.type = type;
     t.connection = null;
-    t.color = color;
+    if(color){
+        t.color = color;
+    }else if(type == "win"){
+        t.color = colorBlue
+    }else{
+        t.color = colorGray;
+    }
     t.animationFrameCounter = SOCKET_ANIMATION_FRAMES/2;
     t.rope = type == "origin" && amount > 0 ? new RopeSection(t.conPt[0],t.conPt[1],amount, color) : null;
     t.update = ()=>{
-        if(t.type == "end" && t.rope){
+        if((t.type == "end" || t.type == "con") && t.rope){
             if(t.connection && !t.connection.rope){
-                t.connection.rope = new RopeSection(t.connection.conPt[0], t.connection.conPt[1], t.rope.amount);
+                t.connection.color = t.color
+                t.connection.rope = new RopeSection(t.connection.conPt[0], t.connection.conPt[1], t.rope.amount, t.color);
                 stage.ropes.push(t.connection.rope);
                 t.connection.type = "origin";
             }
@@ -252,6 +259,11 @@ function Socket(x,y,type,dir,amount,color = colorBlue){
         ctx.fillRect(t.x - xoffset + xAdded,t.y - yoffset + yAdded,rectW,rectH);
         ctx.fillStyle = "rgb("+t.color+")";
         ctx.fillRect(t.x + xAdded2,t.y + yAdded2,socketWidth,socketHeight);
+        if(t.connection && !t.rope){
+            ctx.fillStyle = "black";
+            ctx.font = '20px monospace';
+            ctx.fillText('=', t.x + (t.w*3/8), t.y + (t.h*5/8));
+        }
         if(debugMode){
             ctx.strokeStyle = 'pink';
             ctx.lineWidth = 1;
@@ -275,6 +287,11 @@ function Socket(x,y,type,dir,amount,color = colorBlue){
                 triggerWin();
             }
         }
+    }
+
+    t.setConnection = (socket)=>{
+        t.connection = socket;
+        socket.connection = t;
     }
 
 }

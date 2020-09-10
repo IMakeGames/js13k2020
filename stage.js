@@ -25,7 +25,7 @@ function Stage(setup){
 }
 
 var stage1 = new Stage(function(){
-    let socket1 = new Socket(480, 10, "origin","up", 90);
+    let socket1 = new Socket(480, 10, "origin","up", 90, colorBlue);
     let socket2 = new Socket(480, 950, "win", "down");
     spawnPoint.x = 100;
     spawnPoint.y = 100;
@@ -36,7 +36,7 @@ var stage1 = new Stage(function(){
 });
 
 var stage2 = new Stage(function(){
-    let socket1 = new Socket(950, 700, "origin","right", 40);
+    let socket1 = new Socket(950, 700, "origin","right", 40,colorBlue);
     let socket2 = new Socket(480, 950, "win", "down");
     let holes= genHoles([new Hole(10,300,365,75), new Hole(300,10,75,365)])
     spawnPoint.x = 100;
@@ -49,11 +49,11 @@ var stage2 = new Stage(function(){
 });
 
 var stage3 = new Stage(function(){
-    let socket1 = new Socket(480, 10, "origin","up", 50);
-    let socket2 = new Socket(10, 480, "end","left");
-    let socket3 = new Socket(950, 480, "end", "right");
+    let socket1 = new Socket(480, 10, "origin","up", 50, colorBlue);
+    let socket2 = new Socket(10, 480, "con","left");
+    let socket3 = new Socket(950, 480, "con", "right");
     let socket4 = new Socket(480, 950, "win", "down");
-    socket2.connection = socket3;
+    socket2.setConnection(socket3);
     spawnPoint.x = 100;
     spawnPoint.y = 100;
     return {
@@ -65,7 +65,7 @@ var stage3 = new Stage(function(){
 var stage4 = new Stage(function(){
     let socket1 = new Socket(10, 465, "origin","left", 50, colorRed);
     let socket2 = new Socket(950, 465, "end", "right");
-    let socket3 = new Socket(480, 10, "origin","up", 90);
+    let socket3 = new Socket(480, 10, "origin","up", 90,colorBlue);
     let socket4 = new Socket(480, 950, "win", "down");
     let enemy = new Byter(900,100);
     spawnPoint.x = 100;
@@ -77,6 +77,13 @@ var stage4 = new Stage(function(){
         enemies: [enemy]
     }
 });
+
+// var stage5 = new Stage(function () {
+//     let socket1 = new Socket(10, 465, "origin", "left", 50, colorRed);
+//     let socket2 = new Socket(950, 465, "end", "right");
+//     let socket3 = new Socket(480, 10, "origin", "up", 90, colorBlue);
+//     let socket4 = new Socket(480, 950, "win", "down");
+// })
 
 var genHoles = (holeList)=>{
     let hidden = document.createElement('canvas');
