@@ -42,7 +42,7 @@ let stage2 = ()=>{
         setup(t){
             let socket1 = new Socket(950, 700, "origin","right", 30);
             let socket2 = new Socket(480, 950, "win", "down");
-            let holes= genHoles([hole(10,300,365,75), hole(300,10,75,365)])
+            let holes= genHoles([new Hole(10,300,365,75), new Hole(300,10,75,365)])
             spawnPoint.x = 100;
             spawnPoint.y = 100;
             PLAYER.goToSpawn();
@@ -110,7 +110,7 @@ let stage4 = ()=>{
     }
 }
 var genHoles = (holeList)=>{
-    const hidden = document.createElement('canvas');
+    let hidden = document.createElement('canvas');
     hidden.width = 60;
     hidden.height = 60;
     return {
@@ -174,12 +174,16 @@ var genHoles = (holeList)=>{
             let ctxHidden = hidden.getContext("2d");
             ctxHidden.clearRect(0, 0, ctxHidden.canvas.width, ctxHidden.canvas.height);
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
+            let gv = [
+                [0, 0, 30, 30],
+                [60, 0, 30, 30],
+                [0, 60, 30, 30],
+                [60, 60, 30, 30]
+            ];
             //CREATE GRADIENTS
-            t.gradients.push(ctxHidden.createLinearGradient(0, 0, 30, 30));
-            t.gradients.push(ctxHidden.createLinearGradient(60, 0, 30, 30));
-            t.gradients.push(ctxHidden.createLinearGradient(0, 60, 30, 30));
-            t.gradients.push(ctxHidden.createLinearGradient(60, 60, 30, 30));
+            for(let i = 0; i < 4; i++){
+                t.gradients.push(ctxHidden.createLinearGradient(gv[i][0],gv[i][1],gv[i][2],gv[i][3]));
+            }
             let order = [0,1,2,3,2,1,0];
 
             //UPDATE COLORS
@@ -211,32 +215,29 @@ var genHoles = (holeList)=>{
             ctxHidden.fillRect(30,30,30,30);
 
             //MAKE PATTERN OUT OF CANVAS AND DRAW
-            const pattern = ctx.createPattern(t.canvas, 'repeat');
+            let pattern = ctx.createPattern(t.canvas, 'repeat');
             ctx.fillStyle=pattern;
             ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             ctx.restore();
         }
     }
 }
-var hole = (x,y,w,h)=>{
-    let timeBeforeFall = 50;
-    return {
-        hb: genHb(x,y,w,h),
-        timerStamp: 0,
-        update(){
-            let t = this;
-            let playaX = PLAYER.x - PLAYER.w/2;
-            let playaY = PLAYER.y - PLAYER.h/2;
-            if(playaX >= t.hb.x && playaX+PLAYER.w <= t.hb.x + t.hb.w && playaY >= t.hb.y && playaY+PLAYER.h <= t.hb.y + t.hb.h){
-                if(!t.timerStamp){
-                    t.timerStamp = Date.now();
-                }else if(Date.now() - t.timerStamp >= timeBeforeFall && PLAYER.state != "falling"){
-                    PLAYER.triggerFall();
-                }
-            }else{
-                t.timerStamp = 0;
+var TIME_BEFORE_FALL = 50;
+function Hole(x,y,w,h){
+    let t = this;
+    t.setVals(x,y,w,h);
+    t.timerStamp = 0;
+    t.update = ()=>{
+        if(PLAYER.x >= t.x && PLAYER.x+PLAYER.w <= t.x + t.w && PLAYER.y >= t.y && PLAYER.y + PLAYER.h <= t.y + t.h){
+            if(!t.timerStamp){
+                t.timerStamp = Date.now();
+            }else if(Date.now() - t.timerStamp >= TIME_BEFORE_FALL && PLAYER.state != "falling"){
+                PLAYER.triggerFall();
             }
-            return t.hb;
+        }else{
+            t.timerStamp = 0;
         }
+        return t;
     }
 }
+Hole.prototype = Hitbox();
