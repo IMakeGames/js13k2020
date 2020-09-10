@@ -29,7 +29,7 @@
     var dashMaxVel = 32;
     var maxVel = 6;
     var gameState = "playing";
-    var currentStage = 3;
+    var currentStage = 2;
     var spawnPoint = {x: 100,y: 100};
     var messageFrames = 0;
     var background = genBackground();
@@ -94,9 +94,9 @@
         let interval = dateNow - lastTime;
         lastTime = dateNow;
         let frameRate = 1000/interval;
-        ctx.fillStyle = "white"
-        ctx.font = '25px serif';
-        ctx.fillText('player speed: ' + PLAYER.mag.toFixed(3), 50, 910);
+        // ctx.fillStyle = "white"
+        // ctx.font = '25px serif';
+        // ctx.fillText('player speed: ' + PLAYER.mag.toFixed(3), 50, 910);
         //ctx.fillText('framerate: ' + frameRate.toFixed(3), 50, 850);
         if(gameState == "menu"){
 

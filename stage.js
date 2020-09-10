@@ -54,20 +54,30 @@ let stage2 = ()=>{
     }
 }
 let stage3 = ()=>{
-    let socket1 = new Socket(480, 10, "origin","up", 40);
-    let socket2 = new Socket(10, 480, "end","left");
-    let socket3 = new Socket(950, 480, "end", "right");
-    let socket4 = new Socket(480, 950, "win", "down");
-    socket2.connection = socket3;
     return {
         enemies: [],
-        sockets: [socket1, socket2, socket3, socket4],
-        ropes: [socket1.rope],
+        sockets: null,
+        loaded: false,
+        ropes: null,
         update: function(){
             let t = this;
+            if(!t.loaded) t.setup(t);
             t.enemies.forEach(enemy => enemy.update());
             t.ropes.forEach(rope => !rope.attached ? rope.update():null);
             t.sockets.forEach(socket => socket.update());
+        },
+        setup(t){
+            let socket1 = new Socket(480, 10, "origin","up", 40);
+            let socket2 = new Socket(10, 480, "end","left");
+            let socket3 = new Socket(950, 480, "end", "right");
+            let socket4 = new Socket(480, 950, "win", "down");
+            socket2.connection = socket3;
+            spawnPoint.x = 100;
+            spawnPoint.y = 100;
+            PLAYER.goToSpawn();
+            t.sockets = [socket1, socket2, socket3, socket4];
+            t.ropes = [socket1.rope];
+            t.loaded = true;
         }
     }
 }

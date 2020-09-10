@@ -4,10 +4,9 @@ var HOLD_RADIUS = 22;
 var AFTER_DASH_CD = 10;
 var TOTAL_DASH_CD = 50;
 var TOTAL_DASH_FRAMES = 10;
-var MIN_STRETCH_DIST = 6;
-var MAX_STRETCH_DIST = 10;
+var MIN_STRETCH_DIST = 5;
+var MAX_STRETCH_DIST = 8;
 var FALL_FRAMES_HALVED = 30;
-
 function Player(initX, initY){
     let t = this;
     t.setVals(initX, initY, PLAYER_WIDTH, PLAYER_HEIGHT);
@@ -26,14 +25,13 @@ function Player(initX, initY){
                     if (soc = stage.sockets.find(socket => t.getDist({x: socket.conPt[0], y: socket.conPt[1]}).dist < 50 && !socket.rope)) {
                         t.rope.attach(soc, soc.conPt);
                     } else {
-                        t.rope.attached = null;
-                        t.rope = null;
+                        t.rope.detach();
                     }
                     t.rope = null;
                 } else if (rop = stage.ropes.find(rope => t.getDist(rope).dist < 50)) {
                     //Conditions: must be close to the mouse pos && not already attached to a socket
                     if (rop.getDist(mousePos).dist < 20 && !rop.attached){
-                        rop.attach(t, mousePos);
+                        rop.attach(t, rop);
                     }
                 } else if (!t.dashCoolDown && (Date.now() - lastMouseUp < 270)) {
                     let distFromMouse = t.getDist(mousePos);
@@ -44,30 +42,24 @@ function Player(initX, initY){
                 //No negative magnitudes. If magnitude is negative, angle is reversed and magnitude is absoluted
                 if (t.mag < -1) {
                     t.mag *= -1;
-                    t.ang = t.ang - Math.PI;
+                    t.ang = Math.abs(t.ang) - Math.PI;
                 }
+                //Friction is proportional to velocity
                 t.mag -= t.dashFrames ? t.mag * dashAcc / dashMaxVel : t.mag * mouseAcc / maxVel;
+
                 if (!t.dashFrames && t.dashCoolDown < (TOTAL_DASH_CD - AFTER_DASH_CD) && isMousePressed) {
+                    //If not dashing, not on after-dash cd and if mouse is pressed, it moves towards mouse at
+                    //magnitude relative to distance from mouse
                     let mouseDist = t.getDist(mousePos);
                     t.mag += mouseDist.dist > 100 ? mouseAcc : (mouseDist.dist / 100) * mouseAcc;
                     t.ang = mouseDist.angle - Math.PI;
                 }
                 if (t.dashFrames) {
+                    //if dashing, it dashes
                     t.mag += dashAcc;
                 }
                 if (t.rope) {
                     let holdPoint = t.getHoldPoint();
-                    let realChildDist = t.rope.getDist(holdPoint);
-                    let newM = realChildDist.dist > MIN_STRETCH_DIST ? (realChildDist.dist - MIN_STRETCH_DIST) * maxVel / MAX_STRETCH_DIST : 0;
-                    let xvecResult = Math.cos(t.ang) * t.mag - Math.cos(realChildDist.angle) * newM;
-                    let yvecResult = Math.sin(t.ang) * t.mag - Math.sin(realChildDist.angle) * newM;
-                    let newAng = Math.atan2(yvecResult, xvecResult) || 0;
-                    t.ang = newAng;
-                    t.mag -= newM;
-                    if (t.mag < 0) t.mag *= -4;
-                    ctx.fillStyle = "white"
-                    ctx.font = '25px serif';
-                    ctx.fillText("Hold point: x: "+holdPoint.x.toFixed(3)+" y: "+holdPoint.y.toFixed(3),75,850);
                     t.rope.update(holdPoint);
                 }
                 t.move();

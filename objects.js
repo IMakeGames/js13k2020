@@ -53,13 +53,13 @@ function Hitbox(x,y,w,h){
                 // }
             }
         },
-        getDist(hb2){
+        getDist(hb2,constraint = 0){
             //TODO elminite unused properties from return object.
             let t = this;
             let xdiff = t.cX() - hb2.x;
             let ydiff = t.cY() - hb2.y;
             let dist = Math.hypot(xdiff, ydiff);
-            let scalDiff = (10 - dist) / dist;
+            let scalDiff = (constraint - dist) / dist;
             let angle = Math.atan2(ydiff,xdiff) || 0;
             scalDiff = scalDiff > 0 || isNaN(scalDiff) ? 0 : scalDiff;
             return {

@@ -1,6 +1,9 @@
 var LINK_DIST_CONSTRAINT = 10;
 var ROPE_ANIMATION_FRAMES = 100;
+var ROPE_RECOLECTION_FRAMES = 240;
 var ROPE_SECTION_WIDTH = 5;
+var PLAYER_MIN_DIST = 17;
+var PLAYER_MAX_DIST = 23;
 var ROPE_SECTION_HEIGHT = 5;
 
 function RopeSection(initX, initY, amount, color= colorBlue){
@@ -10,11 +13,17 @@ function RopeSection(initX, initY, amount, color= colorBlue){
     t.fixedY = initY;
     t.amount = amount;
     t.child = amount > 0 ? new RopeSection(initX, initY, amount -1, color) : null;
-    t.frameCounter = 0;
+    t.animationFrameCounter = 0;
+    t.recolecting = false;
+    t.recolectionFrameCounter = 0;
     t.parent = null;
     t.setVals(initX, initY, 0, 0);
 
     t.update = (fixedHb) =>{
+        if(t.recolecting && t.checkInOrigin()){
+            t.stopRecolection();
+        }
+
         let tries = 31;
         do{
             if(fixedHb){
@@ -23,6 +32,20 @@ function RopeSection(initX, initY, amount, color= colorBlue){
             }
             tries--;
         }while(!t.solve(true) && tries > 0)
+
+        if(t.attached === PLAYER) {
+            let distMc = t.getDist(PLAYER.center());
+            if (distMc.dist > PLAYER_MAX_DIST) {
+                PLAYER.x += distMc.normalX * (distMc.dist -PLAYER_MAX_DIST);
+                PLAYER.y += distMc.normalY * (distMc.dist -PLAYER_MAX_DIST);
+            }
+        }
+        if(t.recolectionFrameCounter > 0){
+            t.recolectionFrameCounter--;
+            if(!t.recolectionFrameCounter){
+                t.triggerRecolection();
+            }
+        }
         t.draw();
     };
 
@@ -30,26 +53,29 @@ function RopeSection(initX, initY, amount, color= colorBlue){
         if(munch = stage.enemies.find(muncher => t.getDist(muncher.center()).dist < 150 && muncher.state != "eating")){
             munch.triggerFood(t);
         }
+        let linkDistConstraint = LINK_DIST_CONSTRAINT;
+        if(t.recolecting){
+            linkDistConstraint = 0;
+        }
         let distMc = t.getDist(PLAYER.center());
-        let maxDist = (ROPE_SECTION_WIDTH + PLAYER.w)/1.5;
-        if(distMc.dist <= maxDist){
+        if(distMc.dist <= PLAYER_MIN_DIST) {
             bool = false;
-            let per = distMc.dist/maxDist;
+            let per = distMc.dist/PLAYER_MIN_DIST;
             // let invPer = (maxDist - distMc.dist)/maxDist;
             let invPer = 1 - per;
             if(t.child){
-                t.x -= distMc.translateX*per;
-                t.y -= distMc.translateY*per;
+                t.x += distMc.normalX*3*per;
+                t.y += distMc.normalY*3*per;
             }
-            PLAYER.x += distMc.translateX*invPer;
-            PLAYER.y += distMc.translateY*invPer;
+            PLAYER.x -= distMc.normalX*5*invPer;
+            PLAYER.y -= distMc.normalY*5*invPer;
             //TODO: Check if there is a problem while recoiling: could go through rope. maybe.
             PLAYER.mag = PLAYER.dashFrames ? -dashMaxVel/8 : -1*invPer;
         }
         if(t.child){
             if(!t.child.parent) t.child.parent = t;
-            let dist = t.getDist(t.child);
-            if(dist.dist > LINK_DIST_CONSTRAINT){
+            let dist = t.getDist(t.child, linkDistConstraint);
+            if(dist.dist > linkDistConstraint){
                 bool = false;
                 t.x += dist.translateX;
                 t.y += dist.translateY;
@@ -67,11 +93,44 @@ function RopeSection(initX, initY, amount, color= colorBlue){
     t.attach = (el, holdPt)=>{
         t.attached = el;
         el.rope = t;
+        t.recolectionFrameCounter = 0;
+        t.stopRecolection();
         if(el instanceof Socket){
             el.color = color;
         }
         t.update(holdPt);
     };
+
+    t.detach = ()=>{
+        t.attached = null;
+        t.recolectionFrameCounter = ROPE_RECOLECTION_FRAMES;
+    }
+
+    t.triggerRecolection = ()=>{
+        t.recolecting = true;
+        if(t.child){
+            t.child.triggerRecolection();
+        }
+    }
+
+    t.stopRecolection = ()=>{
+        t.recolecting = false;
+        if(t.child){
+            t.child.stopRecolection();
+        }
+    }
+
+    t.checkInOrigin = () =>{
+        if(t.child){
+            if(t.getDist(t.child).dist < 0.1){
+                return t.child.checkInOrigin();
+            }else{
+                return false;
+            }
+        }else{
+            return true;
+        }
+    }
 
     t.destroy = () =>{
         t.child.parent = null;
@@ -90,19 +149,20 @@ function RopeSection(initX, initY, amount, color= colorBlue){
             t.fixedY = t.y;
         }
     };
+
     t.draw = ()=>{
         if(!t.parent && !t.attached && color != colorRed){
             ctx.beginPath();
-            let per = t.frameCounter/ROPE_ANIMATION_FRAMES;
+            let per = t.animationFrameCounter/ROPE_ANIMATION_FRAMES;
             let invPer = 1 - per;
             let radius = 40*per;
             ctx.arc(t.x, t.y, radius,0, 2 * Math.PI, false);
             ctx.lineWidth = 10;
             ctx.strokeStyle = 'rgba('+color+', '+ invPer +')';
             ctx.stroke();
-            t.frameCounter++;
-            if(t.frameCounter > ROPE_ANIMATION_FRAMES){
-                t.frameCounter = 0;
+            t.animationFrameCounter++;
+            if(t.animationFrameCounter > ROPE_ANIMATION_FRAMES){
+                t.animationFrameCounter = 0;
             }
         }
         if(t.child){
@@ -148,11 +208,11 @@ function Socket(x,y,type,dir,amount,color = colorBlue){
     let rectW = socketWidth + 10;
     let rectH = socketHeight - 5;
     if(dir == "left"){
-        t.conPt = [x + 38, y + 26];
+        t.conPt = [x + 38, y + 25];
         t.setVals(x,y,SOCKET_WIDTH, SOCKET_HEIGHT);
     }else if(dir == "right"){
         xoffset = 10;
-        t.conPt = [x + 3, y + 26];
+        t.conPt = [x + 3, y + 25];
         t.setVals(x,y,SOCKET_WIDTH, SOCKET_HEIGHT);
     }else{
         t.setVals(x,y,SOCKET_HEIGHT, SOCKET_WIDTH);
@@ -166,15 +226,15 @@ function Socket(x,y,type,dir,amount,color = colorBlue){
         rectH = socketHeight + 10;
     }
     if(dir == "up"){
-        t.conPt = [x + 24, y + 40];
+        t.conPt = [x + 25, y + 40];
     }else if(dir == "down"){
         yoffset = 10;
-        t.conPt = [x + 24, y];
+        t.conPt = [x + 25, y];
     }
     t.type = type;
     t.connection = null;
     t.color = color;
-    t.frameCounter = SOCKET_ANIMATION_FRAMES/2;
+    t.animationFrameCounter = SOCKET_ANIMATION_FRAMES/2;
     t.rope = type == "origin" && amount > 0 ? new RopeSection(t.conPt[0],t.conPt[1],amount, color) : null;
     t.update = ()=>{
         if(t.type == "end" && t.rope){
@@ -187,16 +247,16 @@ function Socket(x,y,type,dir,amount,color = colorBlue){
         }
         if(t.type == "win"){
             ctx.beginPath();
-            let per = t.frameCounter/SOCKET_ANIMATION_FRAMES;
+            let per = t.animationFrameCounter/SOCKET_ANIMATION_FRAMES;
             let invPer = 1 - per;
             let radius = 40*invPer;
             ctx.arc(t.conPt[0], t.conPt[1], radius,0, 2 * Math.PI, false);
             ctx.lineWidth = 10;
             ctx.strokeStyle = 'rgba(0, 0, 255, '+ per +')';
             ctx.stroke();
-            t.frameCounter++;
-            if(t.frameCounter > SOCKET_ANIMATION_FRAMES){
-                t.frameCounter = 0;
+            t.animationFrameCounter++;
+            if(t.animationFrameCounter > SOCKET_ANIMATION_FRAMES){
+                t.animationFrameCounter = 0;
             }
             if(t.rope){
                 triggerWin();
