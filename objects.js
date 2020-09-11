@@ -111,10 +111,11 @@ function Hitbox(x,y,w,h){
 var BYTER_WIDTH = 30;
 var BYTER_HEIGHT = 30;
 
-function Byter(x,y){
+function Byter(x,y, type = "sleeper"){
     let t = this;
     t.food = null;
     t.state = "idle";
+    t.type = type;
     t.eatingFrameConter =  0;
     t.frameCounter = 0;
     t.scale =
@@ -170,7 +171,11 @@ function Byter(x,y){
                         } else {
                             t.eatingFrameCounter--;
                             if (!t.eatingFrameCounter) {
-                                t.changeState("sleep");
+                                if(t.type == "sleeper"){
+                                    t.changeState("sleep");
+                                }else{
+                                    t.changeState("idle");
+                                }
                                 t.food.consume();
                                 t.food = null;
                             }

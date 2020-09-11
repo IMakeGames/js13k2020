@@ -68,7 +68,7 @@ var stage5 = new Stage(function (t) {
     t.sockets.push(new Socket(950, 505, "con", "right"));
     t.sockets.push(new Socket(425, 950, "win", "down"));
     t.holes= genHoles([new Hole(0,510,600,100), new Hole(400,390,600,100)])
-    t.enemies = [new Byter(810,810)];
+    t.enemies = [new Byter(810,810, "active")];
     t.ropes = [t.sockets[0].rope];
     t.sockets[1].setConnection(t.sockets[2]);
     PLAYER.spawnPoint.x = 100;

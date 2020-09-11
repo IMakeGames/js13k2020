@@ -56,8 +56,10 @@ function RopeSection(initX, initY, amount, color, origin = null){
     };
 
     t.solve = (bool)=>{
-        if(munch = stage.enemies.find(muncher => t.getDist(muncher.center()).dist < 150 && muncher.state != "eating")){
-            munch.triggerFood(t);
+        if(t.state != "destroy"){
+            if(munch = stage.enemies.find(muncher => t.getDist(muncher.center()).dist < 150 && muncher.state != "eating")){
+                munch.triggerFood(t);
+            }
         }
         let linkDistConstraint = LINK_DIST_CONSTRAINT;
         if(t.recolecting){
@@ -377,6 +379,7 @@ function Socket(x,y,type,dir,amount,color){
                     triggerWin();
                 }
             }else{
+                t.winFrameCounter = 0;
                 ctx.beginPath();
                 let per = t.animationFrameCounter/SOCKET_ANIMATION_FRAMES;
                 let invPer = 1 - per;
