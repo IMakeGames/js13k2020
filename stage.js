@@ -10,9 +10,9 @@ function Stage(setup){
         if(t.holes){
             t.holes.update();
         }
-        t.enemies.forEach(enemy => enemy.update());
         t.sockets.forEach(socket => socket.update());
         t.ropes.forEach(rope => !rope.attached ? rope.update():null);
+        t.enemies.forEach(enemy => enemy.update());
     }
 
     t.setup = ()=>{
