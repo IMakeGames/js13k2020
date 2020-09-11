@@ -123,13 +123,22 @@ function Byter(x, y, type = "sleeper") {
     t.state = "idle";
     t.animState = "idle";
     // 1 = right; -1 = left
-    t.direction = 1;
+    t.direction = 0;
     t.type = type;
     t.eatingFrameConter = 0;
     t.frameCounter = 0;
     t.scale =
         t.setVals(x, y, BYTER_WIDTH, BYTER_HEIGHT);
-    t.animation = new ByterAnimation();
+    t.animation = new Anim({
+        "exp": genAnim([0], 180),
+        "walking": genAnim([0, 12], 60),
+        "idle": genAnim([0, 1, 0], 140),
+        "attack": genAnim([6, 7, 8], 10,1),
+        "eating": genAnim([12, 13, 14], 10,1),
+        "cd": genAnim([6], 180),
+        "falling": genAnim([6], 180),
+        "sleep": genAnim([2], 180)
+    },3,4, 0);
     t.update = () => {
         let scale = 1;
         let reSpawnPos = 0;
@@ -154,6 +163,9 @@ function Byter(x, y, type = "sleeper") {
                     t.y -= spawnDist.normalY * 2;
                 } else {
                     t.animState = "idle";
+                    if(t.animation.anim["idle"].counter == 0){
+                        t.direction = Math.abs(t.direction - 1);
+                    }
                 }
                 if (playerDistance.dist < 150) {
                     t.changeState("attack");
@@ -284,40 +296,18 @@ function Byter(x, y, type = "sleeper") {
 }
 
 Byter.prototype = Hitbox();
+var SPRITE_WIDTH = 22;
+var SPRITE_HEIGHT = 17;
 
-function ByterAnimation() {
-    let spriteWidth = 22;
-    let spriteHeight = 17;
+function Anim(anim, mult, xOffset, yOffset) {
     let t = this;
+    t.anim = anim;
     t.spriteData = [];
     for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 3; j++) {
-            t.spriteData.push([spriteWidth * j, spriteHeight * i]);
+        for (let j = 0; j < 6; j++) {
+            t.spriteData.push([SPRITE_WIDTH * j, SPRITE_HEIGHT * i]);
         }
     }
-
-    t.genAnim = (sprites, duration, reverse = 0) => {
-        return {
-            sprites: sprites,
-            duration: duration,
-            counter: 0,
-            reverse: reverse,
-            xOffset: 5,
-            yOffset: 0,
-            add: 1
-        }
-    }
-
-    t.anim = {
-        "exp": t.genAnim([0], 180),
-        "walking": t.genAnim([0, 6], 60),
-        "idle": t.genAnim([0, 1, 0], 140),
-        "attack": t.genAnim([3, 4, 5], 10,1),
-        "eating": t.genAnim([6, 7, 8], 10,1),
-        "cd": t.genAnim([3], 180),
-        "falling": t.genAnim([3], 180),
-        "sleep": t.genAnim([2], 180)
-    };
 
     for (key in t.anim) {
         let member = t.anim[key];
@@ -334,21 +324,22 @@ function ByterAnimation() {
         }
     }
 
-    t.animate = (x, y, state, scl, direction = 0) => {
+    t.animate = (x, y, state, scl, direction, increment = 1) => {
         let thisAnim = t.anim[state]
         let spriteDatum = t.spriteData[thisAnim.spriteArray[thisAnim.counter]]
         let scale = 1
         if (direction & 1) {
             scale = -1;
-            x = -x - spriteWidth * 3 + thisAnim.xOffset;
+            x = -x - SPRITE_WIDTH * mult + xOffset;
         } else {
-            x -= thisAnim.xOffset;
+            x -= xOffset;
         }
+        y -= yOffset;
         ctx.save();
         ctx.scale(scale, 1);
-        ctx.drawImage(spriteSheet, spriteDatum[0], spriteDatum[1], spriteWidth, spriteHeight, x, y, spriteWidth * 3*scl, spriteHeight * 3*scl);
+        ctx.drawImage(spriteSheet, spriteDatum[0], spriteDatum[1], SPRITE_WIDTH, SPRITE_HEIGHT, x, y, SPRITE_WIDTH * mult *scl, SPRITE_HEIGHT * mult *scl);
         ctx.restore();
-        thisAnim.counter += thisAnim.add;
+        thisAnim.counter += Math.round(thisAnim.add + increment);
         if (thisAnim.counter >= thisAnim.duration) {
             if (thisAnim.reverse & 1) {
                 thisAnim.add = -1;
@@ -359,6 +350,17 @@ function ByterAnimation() {
         } else if (thisAnim.counter <= 0) {
             thisAnim.add = 1;
         }
+    }
+}
+
+var genAnim = (sprites, duration, reverse = 0) => {
+    return {
+        sprites: sprites,
+        duration: duration,
+        counter: 0,
+        reverse: reverse,
+        yOffset: 0,
+        add: 1
     }
 }
 

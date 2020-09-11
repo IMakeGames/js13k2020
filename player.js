@@ -10,12 +10,21 @@ function Player(initX, initY){
     t.dashFrames = 0;
     t.dashCoolDown = 0;
     t.state = "normal";
+    t.animState = "idle";
     t.frameCounter = 0;
+    t.direction = 0;
     t.health = 3;
     t.rope = null;
+    t.animation = new Anim({
+        "walking": genAnim([3, 4, 5, 9, 10, 11, 15], 60),
+        "idle": genAnim([3, 16], 140),
+        "falling": genAnim([3], 180),
+        "recoil": genAnim([3], 180)
+    },4,20, 22);
     t.update = ()=>{
         let scale = 1;
         let reSpawnPos = 0;
+        let animSpd = 1;
         if(!t.frameCounter) {
             if (RESOLVE_SHORT_CLICK && !t.dashFrames) {
                 if (t.rope) {
@@ -35,6 +44,7 @@ function Player(initX, initY){
                     t.dashFrames = TOTAL_DASH_FRAMES;
                 }
             }else{
+                let xDiff = 0;
                 //No negative magnitudes. If magnitude is negative, angle is reversed and magnitude is absoluted
                 if (t.mag < -1) {
                     t.mag *= -1;
@@ -46,6 +56,7 @@ function Player(initX, initY){
                 if (!t.dashFrames && t.dashCoolDown < (TOTAL_DASH_CD - AFTER_DASH_CD) && isMousePressed) {
                     //If not dashing, not on after-dash cd and if mouse is pressed, it moves towards mouse at
                     //magnitude relative to distance from mouse
+                    xDiff = t.cX() - mousePos.x;
                     let mouseDist = t.getDist(mousePos);
                     t.mag += mouseDist.dist > 100 ? mouseAcc : (mouseDist.dist / 100) * mouseAcc;
                     t.ang = mouseDist.angle - Math.PI;
@@ -59,6 +70,17 @@ function Player(initX, initY){
                     t.rope.update(holdPoint);
                 }
                 t.move();
+                if(xDiff > t.w/2){
+                    t.direction = 1;
+                }else if(xDiff < -t.w/2){
+                    t.direction = 0;
+                }
+                if(t.mag > 0.2){
+                    t.animState = "walking";
+                    animSpd = t.mag/maxVel;
+                }else{
+                    t.animState = "idle";
+                }
             }
             //ResolveShortClick must always be falsed even if action is not taken
             RESOLVE_SHORT_CLICK = false;
@@ -79,18 +101,24 @@ function Player(initX, initY){
                 reSpawnPos = t.frameCounter/FALL_FRAMES_HALVED;
             }
             t.frameCounter--;
+            t.animState = "falling";
             if(!t.frameCounter) t.state = "normal";
         }
-        if (t.dashCoolDown) t.dashCoolDown--;
-        ctx.lineWidth = 1;
-        ctx.fillStyle = 'blue';
-        ctx.fillRect(t.x,t.y - reSpawnPos*t.y,t.w*scale,t.h*scale);
-        ctx.strokeStyle = 'red';
-        ctx.strokeRect(t.cX(),t.cY() - reSpawnPos*t.cY(), 1,1);
-        ctx.beginPath();
-        ctx.arc(t.cX(), t.cY() - reSpawnPos*t.cY(), HOLD_RADIUS,0, 2 * Math.PI, false);
-        ctx.strokeStyle = 'purple';
-        ctx.stroke();
+        if (t.dashCoolDown) {
+            t.dashCoolDown--;
+        }
+        t.animation.animate(t.x - t.w *scale/ 2, t.y - t.h * scale / 2 - reSpawnPos * t.y, t.animState, scale, t.direction, animSpd);
+        if(debugMode){
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'orange';
+            ctx.strokeRect(t.x,t.y - reSpawnPos*t.y,t.w*scale,t.h*scale);
+            ctx.strokeStyle = 'red';
+            ctx.strokeRect(t.cX(),t.cY() - reSpawnPos*t.cY(), 1,1);
+            ctx.beginPath();
+            ctx.arc(t.cX(), t.cY() - reSpawnPos*t.cY(), HOLD_RADIUS,0, 2 * Math.PI, false);
+            ctx.strokeStyle = 'purple';
+            ctx.stroke();
+        }
     }
     t.getHoldPoint = ()=>{
         let childDist = t.getDist(t.rope);
