@@ -17,7 +17,7 @@ function Player(initX, initY){
     t.rope = null;
     t.animation = new Anim({
         "walking": genAnim([3, 4, 5, 9, 10, 11, 15], 60),
-        "idle": genAnim([3, 16], 140),
+        "idle": genAnim([3, 16, 3, 3], 240),
         "falling": genAnim([3], 180),
         "recoil": genAnim([3], 180)
     },4,20, 22);
@@ -81,6 +81,9 @@ function Player(initX, initY){
                     animSpd = t.mag/maxVel;
                 }else{
                     t.animState = "idle";
+                    if(t.animation.anim["idle"].counter == 0){
+                        t.direction = Math.abs(t.direction - 1);
+                    }
                 }
             }
             //ResolveShortClick must always be falsed even if action is not taken
@@ -108,13 +111,13 @@ function Player(initX, initY){
         if (t.dashCoolDown) {
             t.dashCoolDown--;
         }
-        t.animation.animate(t.x - t.w *scale/ 2, t.y - t.h * scale / 2 - reSpawnPos * t.y, t.animState, scale, t.direction, animSpd);
         if(t.rope && holdPoint){
             ctx.save();
             ctx.scale(1, 1);
             ctx.drawImage(spriteSheet, 110, 34, SPRITE_WIDTH, SPRITE_HEIGHT, holdPoint.x - SPRITE_WIDTH/2, holdPoint.y  - SPRITE_HEIGHT/2, SPRITE_WIDTH, SPRITE_HEIGHT);
             ctx.restore();
         }
+        t.animation.animate(t.x - t.w *scale/ 2, t.y - t.h * scale / 2 - reSpawnPos * t.y, t.animState, scale, t.direction, animSpd);
         if(debugMode){
             ctx.lineWidth = 1;
             ctx.strokeStyle = 'orange';

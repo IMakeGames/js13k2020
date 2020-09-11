@@ -79,6 +79,7 @@ var genHoles = (holeList)=>{
     let hidden = document.createElement('canvas');
     hidden.width = 60;
     hidden.height = 60;
+    let yOffset = 10;
     return {
         holes: holeList,
         canvas: hidden,
@@ -105,7 +106,7 @@ var genHoles = (holeList)=>{
                 let sections = holeHb.w/divisor
                 let variableLength= 10;
                 for(let i = 1; i <= sections;i++){
-                    ctx.lineTo(holeHb.x+divisor*i,holeHb.y + variableLength);
+                    ctx.lineTo(holeHb.x+divisor*i,holeHb.y + yOffset + variableLength);
                     variableLength = Math.abs(variableLength - 10);
                 }
                 //right
@@ -113,7 +114,7 @@ var genHoles = (holeList)=>{
                 sections = holeHb.h/divisor
                 variableLength= 10;
                 for(let i = 1; i <= sections;i++){
-                    ctx.lineTo(holeHb.x + holeHb.w -variableLength,holeHb.y+divisor*i);
+                    ctx.lineTo(holeHb.x + holeHb.w -variableLength,holeHb.y+divisor*i + yOffset);
                     variableLength = Math.abs(variableLength - 10);
                 }
                 //bottom
@@ -121,7 +122,7 @@ var genHoles = (holeList)=>{
                 sections = holeHb.w/divisor
                 variableLength= 10;
                 for(let i = 1; i <= sections;i++){
-                    ctx.lineTo(holeHb.x + holeHb.w - divisor*i,holeHb.y + holeHb.h - variableLength);
+                    ctx.lineTo(holeHb.x + holeHb.w - divisor*i,holeHb.y + holeHb.h - variableLength + yOffset);
                     variableLength = Math.abs(variableLength - 10);
                 }
                 //left
@@ -129,10 +130,15 @@ var genHoles = (holeList)=>{
                 sections = holeHb.h/divisor
                 variableLength= 10;
                 for(let i = 1; i <= sections;i++){
-                    ctx.lineTo(holeHb.x + variableLength,holeHb.y + holeHb.h - divisor*i);
+                    ctx.lineTo(holeHb.x + variableLength,holeHb.y + holeHb.h - divisor*i + yOffset);
                     variableLength = Math.abs(variableLength - 10);
                 }
                 //p2D.rect(holeHb.x, holeHb.y, holeHb.w, holeHb.h);
+                if(debugMode){
+                    ctx.strokeStyle = "red";
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(holeHb.x, holeHb.y, holeHb.w, holeHb.h);
+                }
             }
             ctx.clip("nonzero");
 
