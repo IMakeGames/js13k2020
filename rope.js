@@ -6,13 +6,15 @@ var PLAYER_MIN_DIST = 17;
 var PLAYER_MAX_DIST = 23;
 var ROPE_SECTION_HEIGHT = 5;
 var WIN_FRAMES = 180;
-function RopeSection(initX, initY, amount, color){
+function RopeSection(initX, initY, amount, color, origin = null){
     let t = this;
     t.attached = null;
     t.fixedX = initX;
     t.fixedY = initY;
     t.amount = amount;
+    t.color = color;
     t.child = amount > 0 ? new RopeSection(initX, initY, amount -1, color) : null;
+    t.origin = origin;
     t.animationFrameCounter = 0;
     t.ropeAnimationFrames = ROPE_ANIMATION_FRAMES;
     t.state = "normal";
@@ -96,22 +98,25 @@ function RopeSection(initX, initY, amount, color){
     };
 
     t.attach = (el, holdPt)=>{
+        t.detach();
         t.attached = el;
         el.rope = t;
         t.recolectionFrameCounter = 0;
         t.stopRecolection();
         if(el instanceof Socket){
-            el.color = color;
-            if(el.type == "win"){
+            el.color = t.color;
+            if(t.color != colorRed){
                 t.setOutlineAnimDelay(0,Math.round(t.amount/5)*10);
             }
+        }else{
+            t.resetOutlineAnim();
         }
         t.update(holdPt);
     };
 
     t.setOutlineAnimDelay = (n,i)=>{
         if(!n){
-            t.state = "connectedToVictory";
+            t.state = "connected";
             n = 5;
             t.currentOutlineDelay = i;
             i -= 10;
@@ -123,9 +128,21 @@ function RopeSection(initX, initY, amount, color){
         }
     }
 
+    t.resetOutlineAnim = () =>{
+        t.state = "normal";
+        t.currentOutlineDelay = 0;
+        t.animationFrameCounter = 0;
+        if(t.child){
+            t.child.resetOutlineAnim();
+        }
+    }
+
     t.detach = ()=>{
-        t.attached = null;
-        t.recolectionFrameCounter = ROPE_RECOLECTION_FRAMES;
+        if(t.attached){
+            t.attached.rope = null;
+            t.attached = null;
+            t.recolectionFrameCounter = ROPE_RECOLECTION_FRAMES;
+        }
     }
 
     t.triggerRecolection = ()=>{
@@ -161,9 +178,16 @@ function RopeSection(initX, initY, amount, color){
         }
     }
 
+    t.assignOrigin = (ori) =>{
+        t.origin = ori;
+        ori.rope = t;
+    }
+
     t.consume = () =>{
         t.child.parent = null;
         t.child.setForDestroy(60);
+        t.child.assignOrigin(t.getParent().origin);
+        t.getParent().origin = null;
         stage.ropes = stage.ropes.filter(rope => rope !== t.getParent()).concat([t,t.child]);
         t.reverse();
         t.setForDestroy(60);
@@ -183,7 +207,13 @@ function RopeSection(initX, initY, amount, color){
         stage.ropes = stage.ropes.filter(rope => rope !== t);
         if(t.child){
             t.child.parent = null;
+            if(t.origin){
+                t.child.assignOrigin(t.origin);
+            }
             stage.ropes.push(t.child);
+        }else if(t.origin){
+            t.origin.rope = null;
+            t.origin = null;
         }
     }
 
@@ -203,7 +233,7 @@ function RopeSection(initX, initY, amount, color){
         if(t.state != "normal" && t.currentOutlineDelay){
             t.currentOutlineDelay--;
         }
-        if((!t.parent && !t.attached && color != colorRed) || (t.state != "normal" && !t.currentOutlineDelay)){
+        if((!t.parent && !t.attached) || (t.state != "normal" && !t.currentOutlineDelay)){
             t.drawOutline(t.state == "destroy" ? "255,255,255" : null);
         }
         if(t.child){
@@ -236,7 +266,7 @@ function RopeSection(initX, initY, amount, color){
         let radius = 40*per;
         ctx.arc(t.x, t.y, radius,0, 2 * Math.PI, false);
         ctx.lineWidth = 25*invPer;
-        ctx.strokeStyle = 'rgba('+ (col ? col : color) +', '+ invPer +')';
+        ctx.strokeStyle = 'rgba('+ (col ? col : t.color) +', '+ invPer +')';
         ctx.stroke();
         t.animationFrameCounter++;
         if(t.animationFrameCounter > t.ropeAnimationFrames){
@@ -303,21 +333,24 @@ function Socket(x,y,type,dir,amount,color){
     t.animationFrameCounter = SOCKET_ANIMATION_FRAMES/2;
     t.winFrameCounter = 0;
     t.amount = amount;
-    t.rope = type == "origin" && amount > 0 ? new RopeSection(t.conPt[0],t.conPt[1],t.amount, color) : null;
+    t.rope = type == "origin" && amount > 0 ? new RopeSection(t.conPt[0],t.conPt[1],t.amount, color, t) : null;
     t.update = ()=>{
-        if(t.type != "origin" && t.rope){
-            if(t.connection && !t.connection.rope){
-                t.connection.color = t.color
-                t.connection.amount = t.rope.amount;
-                t.connection.rope = new RopeSection(t.connection.conPt[0], t.connection.conPt[1], t.rope.amount, t.color);
-                stage.ropes.push(t.connection.rope);
-                t.connection.type = "origin";
-            }
-            t.rope.update({x:t.conPt[0], y:t.conPt[1]});
-        }else if(t.type == "origin" && !stage.ropes.filter(rope => rope === t.rope).length){
-            if(!stage.ropes.filter(rope => rope === t.rope).length){
-                t.rope = new RopeSection(t.conPt[0],t.conPt[1],t.amount, t.color);
-                stage.ropes.push(t.rope);
+        if(t.type != "origin"){
+            if(t.rope){
+                if(t.connection && !t.connection.rope){
+                    t.connection.color = t.color
+                    t.connection.amount = t.rope.amount;
+                    t.connection.rope = new RopeSection(t.connection.conPt[0], t.connection.conPt[1], t.rope.amount, t.color,t.connection);
+                    stage.ropes.push(t.connection.rope);
+                    t.connection.type = "origin";
+                }
+                t.rope.update({x:t.conPt[0], y:t.conPt[1]});
+            }else if(t.type == "con" && t.connection.type == "origin"){
+                t.color = colorGray;
+                stage.ropes = stage.ropes.filter(rop => rop !== t.connection.rope);
+                t.connection.color = t.color;
+                t.connection.rope = null;
+                t.connection.type = "con";
             }
         }
         ctx.fillStyle = '#00c745';

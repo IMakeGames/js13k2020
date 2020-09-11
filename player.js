@@ -24,10 +24,9 @@ function Player(initX, initY){
                     } else {
                         t.rope.detach();
                     }
-                    t.rope = null;
                 } else if (rop = stage.ropes.find(rope => t.getDist(rope).dist < 50)) {
                     //Conditions: must be close to the mouse pos && not already attached to a socket
-                    if (rop.getDist(mousePos).dist < 20 && !rop.attached){
+                    if (rop.getDist(mousePos).dist < 20 && rop.color != colorRed){
                         rop.attach(t, rop);
                     }
                 } else if (!t.dashCoolDown && (Date.now() - lastMouseUp < 270)) {
@@ -39,7 +38,7 @@ function Player(initX, initY){
                 //No negative magnitudes. If magnitude is negative, angle is reversed and magnitude is absoluted
                 if (t.mag < -1) {
                     t.mag *= -1;
-                    t.ang = Math.abs(t.ang) - Math.PI;
+                    t.ang = t.ang - Math.PI;
                 }
                 //Friction is proportional to velocity
                 t.mag -= t.dashFrames ? t.mag * dashAcc / dashMaxVel : t.mag * mouseAcc / maxVel;
