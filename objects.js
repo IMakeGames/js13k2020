@@ -1,5 +1,5 @@
 var spriteSheet = new Image();
-spriteSheet.src = "sprite.png";
+spriteSheet.src = "enemy_sprite_alpha.png";
 var TIME_BEFORE_FALL = 50;
 var FALL_FRAMES_HALVED = 30;
 function Hitbox(x,y,w,h){
@@ -120,7 +120,7 @@ function Byter(x,y, type = "sleeper"){
     t.frameCounter = 0;
     t.scale =
     t.setVals(x,y,BYTER_WIDTH,BYTER_HEIGHT);
-
+    t.animation = new ByterAnimation();
     t.update = ()=>{
         let scale = 1;
         let reSpawnPos = 0;
@@ -212,10 +212,11 @@ function Byter(x,y, type = "sleeper"){
         }
         t.move();
         ctx.fillText(fillText, t.x - t.w + 10, t.y - t.h/2 - 10);
-        ctx.save();
-        ctx.scale(-1, 1);
-        ctx.drawImage(spriteSheet, 0,0,22,21,-t.x,t.y - reSpawnPos*t.y,44*scale,42*scale);
-        ctx.restore();
+        // ctx.save();
+        // ctx.scale(-1, 1);
+        // ctx.drawImage(spriteSheet, 0,0,22,21,-t.x,t.y - reSpawnPos*t.y,44*scale,42*scale);
+        // ctx.restore();
+        t.animation.animate(t.x-t.w/2,t.y-t.h/2);
         ctx.strokeStyle = "orange";
         ctx.lineWidth = 2;
         ctx.strokeRect(t.x,t.y - reSpawnPos*t.y,t.w*scale,t.h*scale);
@@ -260,6 +261,47 @@ function Byter(x,y, type = "sleeper"){
 }
 Byter.prototype = Hitbox();
 
+function ByterAnimation(){
+    let spriteWidth = 22;
+    let spriteHeight = 17;
+    this. spriteData = [];
+    for(let i = 0;i<3;i++){
+        for(let j = 0; j<3;j++){
+            this.spriteData.push([spriteWidth*j,spriteHeight*i]);
+        }
+    }
+    let idleAnim = [0,1,0]
+    this.anim = {type: "idle", duration: 140, counter: 0, reverse: 0 };
+    let fraction = Math.round(this.anim.duration/idleAnim.length);
+    let div = fraction;
+    let frameInd = 0;
+    this.anim.spriteArray = []
+    for(let i = 0; i < this.anim.duration; i++){
+        if(i > div){
+            frameInd++;
+            div += fraction;
+        }
+        this.anim.spriteArray.push(idleAnim[frameInd]);
+    }
+
+    this.animate = (x,y)=>{
+        let spriteDatum = this.spriteData[this.anim.spriteArray[this.anim.counter]]
+        let scale = 1
+        if(this.anim.reverse){
+            scale = -1;
+            x = -x - spriteWidth*3;
+        }
+        ctx.save();
+            ctx.scale(scale, 1);
+            ctx.drawImage(spriteSheet, spriteDatum[0], spriteDatum[1], spriteWidth, spriteHeight, x,y,spriteWidth*3,spriteHeight*3);
+            ctx.restore();
+        this.anim.counter++;
+        if(this.anim.counter >= this.anim.duration){
+            this.anim.counter = 0;
+            this.anim.reverse = !this.anim.reverse;
+        }
+    }
+}
 var getNextWholeDivisor = (dividend, divisor) =>{
     if(dividend%divisor == 0){
         return divisor;
