@@ -324,7 +324,7 @@ function Anim(anim, mult, xOffset, yOffset) {
         }
     }
 
-    t.animate = (x, y, state, scl, direction, increment = 1) => {
+    t.animate = (x, y, state, scl, direction, increment = 0) => {
         let thisAnim = t.anim[state]
         let spriteDatum = t.spriteData[thisAnim.spriteArray[thisAnim.counter]]
         let scale = 1

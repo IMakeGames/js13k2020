@@ -1,6 +1,6 @@
 var PLAYER_WIDTH = 20;
 var PLAYER_HEIGHT = 20;
-var HOLD_RADIUS = 22;
+var HOLD_RADIUS = 30;
 var AFTER_DASH_CD = 10;
 var TOTAL_DASH_CD = 50;
 var TOTAL_DASH_FRAMES = 10;
@@ -25,6 +25,7 @@ function Player(initX, initY){
         let scale = 1;
         let reSpawnPos = 0;
         let animSpd = 1;
+        let holdPoint = null;
         if(!t.frameCounter) {
             if (RESOLVE_SHORT_CLICK && !t.dashFrames) {
                 if (t.rope) {
@@ -66,7 +67,7 @@ function Player(initX, initY){
                     t.mag += dashAcc;
                 }
                 if (t.rope) {
-                    let holdPoint = t.getHoldPoint();
+                    holdPoint = t.getHoldPoint();
                     t.rope.update(holdPoint);
                 }
                 t.move();
@@ -108,6 +109,12 @@ function Player(initX, initY){
             t.dashCoolDown--;
         }
         t.animation.animate(t.x - t.w *scale/ 2, t.y - t.h * scale / 2 - reSpawnPos * t.y, t.animState, scale, t.direction, animSpd);
+        if(t.rope && holdPoint){
+            ctx.save();
+            ctx.scale(1, 1);
+            ctx.drawImage(spriteSheet, 110, 34, SPRITE_WIDTH, SPRITE_HEIGHT, holdPoint.x - SPRITE_WIDTH/2, holdPoint.y  - SPRITE_HEIGHT/2, SPRITE_WIDTH, SPRITE_HEIGHT);
+            ctx.restore();
+        }
         if(debugMode){
             ctx.lineWidth = 1;
             ctx.strokeStyle = 'orange';
