@@ -124,9 +124,9 @@ function Byter(x, y, type = "sleeper") {
     t.direction = 0;
     t.type = type;
     if(type == "sleeper"){
-        t.color = colorYellow;
+        t.color = colorYellowAlph;
     }else if(type == "active"){
-        t.color = colorRed;
+        t.color = colorRedAlph;
     }
     t.eatingFrameConter = 0;
     t.frameCounter = 0;
@@ -306,20 +306,7 @@ function Anim(anim, mult, xOffset, yOffset, color) {
     let t = this;
     t.anim = anim;
     t.spriteData = [];
-    t.sSheet = SPRITE_SHEET;
-    if(color){
-        let hidden = document.createElement('canvas');
-        hidden.width = 132;
-        hidden.height = 51;
-        let ctxHidden = hidden.getContext("2d");
-        setNoSmoothing(ctxHidden)
-        ctxHidden.clearRect(0, 0, 132, 51);
-        ctxHidden.fillStyle = "rgba("+color+", 0.5)"
-        ctxHidden.drawImage(SPRITE_SHEET,0,0);
-        ctxHidden.globalCompositeOperation = "source-atop"
-        ctxHidden.fillRect(0,0,132,51);
-        t.sSheet = hidden;
-    }
+    t.sSheet = color ? COLORED_SPRITE_SHEETS[color] : SPRITE_SHEET;
     for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 6; j++) {
             t.spriteData.push([SPRITE_WIDTH * j, SPRITE_HEIGHT * i]);

@@ -9,8 +9,8 @@
 <style>
     #main {position:fixed;width:99.5vmin;top:49.9%;left:49.9%;transform:translateX(-50%)translateY(-50%);}
 </style>
-<script src="utils.js"></script>
 <script src="objects.js"></script>
+<script src="utils.js"></script>
 <script src="stage.js"></script>
 <script src="player.js"></script>
 <script src="rope.js"></script>
@@ -19,7 +19,7 @@
     //========= SETS UP GLOBAL VARIABLES
     var main = document.getElementById("main");
     var ctx = main.getContext("2d");
-    var mousePos = {x: 0, y: 0}
+    var mousePos = {x: 0, y: 0, w: 0, h: 0}
     var isMousePressed = false;
     var lastMouseUp = 0;
     var lastMouseDown = 0;
@@ -28,16 +28,19 @@
     var dashAcc = 4;
     var dashMaxVel = 32;
     var maxVel = 6;
-    var gameState = "playing";
+    var gameState = "game_over";
 
-    var currentStage = 6;
+    var currentStage = 4;
     var debugMode = false;
 
     var messageFrames = 0;
     var background = genBackground();
     var colorRed = "255,0,0";
+    var colorRedAlph = "255,0,0,0.5";
     var colorYellow = "255,255,0";
+    var colorYellowAlph = "255,255,0,0.5";
     var colorBlue = "0,0,255";
+    var colorBlueAlph = "0,0,255,0.5";
     var colorGray = "126,126,126";
     var prepareWin = false;
 
@@ -45,6 +48,7 @@
     var stages;
     var stage;
     var textProc;
+    var menuOBox = [];
     let triggerWin = ()=>{
         gameState = "win";
         currentStage++;
@@ -55,6 +59,7 @@
 
     function loadVars(){
         //Set all smoothing effects off
+        loadColoredSpriteSheets();
         setNoSmoothing(ctx);
         //Set some drawing variables
         ctx.strokeStyle = 'red';
@@ -71,11 +76,16 @@
         });
         main.addEventListener('mouseup', e => {
             isMousePressed = false;
-            if(Date.now() - lastMouseDown < 117){
-                console.log("short click");
-                RESOLVE_SHORT_CLICK = true;
+            if(gameState == "playing"){
+                if(Date.now() - lastMouseDown < 117){
+                    RESOLVE_SHORT_CLICK = true;
+                }else{
+                    lastMouseUp = Date.now();
+                }
             }else{
-                lastMouseUp = Date.now();
+                if(menuOBox[gameState].checkColission(mousePos)){
+                    menuOBox[gameState].executeCallback();
+                }
             }
         });
         main.addEventListener('mousemove', e=> {
@@ -90,6 +100,16 @@
         PLAYER = new Player(0,0);
         textProc = new TextPrinter();
         stages = [stage1, stage2,stage3, stage4, stage5, stage6, stage7];
+        menuOBox = {
+            "menu": new optBox(700, 600, 60,"play", function(){
+            stage = stages[currentStage]();
+            gameState = "playing"
+        }, colorBlue),
+            "game_over": new optBox(50, 550, 60,"try again?", function(){
+                stage = stages[currentStage]();
+                gameState = "playing"
+            })
+        };
         stage = stages[currentStage]();
         lastTime = Date.now();
     }
@@ -106,15 +126,25 @@
         // ctx.font = '25px serif';
         // ctx.fillText('player speed: ' + PLAYER.mag.toFixed(3), 50, 910);
         //ctx.fillText('framerate: ' + frameRate.toFixed(3), 50, 850);
+        if(menuOBox[gameState]){
+            menuOBox[gameState].draw();
+        }
         if(gameState == "menu"){
-
+            textProc.drawText("the internet is", 25,200,10);
+            textProc.drawText("broken", 75,300, 25, colorRed);
+            textProc.drawText("(", 650,447, 9);
+            textProc.drawText("again", 685, 450, 7);
+            textProc.drawText(")", 880,447, 9);
+            ctx.save();
+            ctx.rotate(0.21);
+            ctx.drawImage(SPRITE_SHEET, 74, 2, 7, 8, 150, 450, 7*80, 8*80);
+            ctx.restore();
         }
         if(gameState == "playing"){
             //========= DISPLAY AND UPDATE EVERYTHING
             background.update();
             stage.update();
             PLAYER.update();
-            textProc.drawText("hello wolrd", 450,450, 5, colorRed);
             //=========
             //========= DISPLAY HEALTH
             ctx.fillStyle= 'green'
@@ -135,12 +165,15 @@
             //=========
         }
         if(gameState == "game_over"){
-            ctx.fillStyle = 'black';
-            ctx.font = '60px Extrabold sans-serif';
-            ctx.fillText("Game Over", 75, 440);
+            textProc.drawText("game", 25,250,18);
+            textProc.drawText("over", 250,370,18, colorRed);
+            ctx.save();
+            ctx.rotate(5.6);
+            ctx.drawImage(COLORED_SPRITE_SHEETS[colorRedAlph], 0, 0, 22, 16, -400, 800, 22*45, 16*45);
+            ctx.restore();
         }
         if(gameState == "win"){
-            stage.update();
+            //stage.update();
             ctx.fillStyle = "#2e072b";
             ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             ctx.fillStyle = 'green';

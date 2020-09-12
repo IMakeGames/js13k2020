@@ -30,6 +30,7 @@ function Stage(setup) {
     t.setup = () => {
         setup(t);
         PLAYER.goToSpawn();
+        PLAYER.health = 3;
         t.loaded = true;
     }
 }
