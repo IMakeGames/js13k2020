@@ -210,7 +210,7 @@ function RopeSection(initX, initY, amount, color, origin = null){
 
     t.destroy = ()=>{
         stage.ropes = stage.ropes.filter(rope => rope !== t);
-        if(t.child){
+        if(t.child && !t.checkInOrigin()){
             t.child.parent = null;
             if(t.origin){
                 t.child.assignOrigin(t.origin);

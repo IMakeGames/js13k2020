@@ -148,7 +148,7 @@ function Byter(x, y, type = "sleeper") {
         let fillText = "";
         if (t.frameCounter > 0) t.frameCounter--;
         let playerDistance = t.getDist(PLAYER.center());
-        t.mag -= t.mag * mouseAcc / (maxVel * 0.7);
+        t.mag -= t.mag * mouseAcc / (maxVel * 0.75);
         ctx.fillStyle = 'orange';
         ctx.font = '40px Extrabold sans-serif';
         let xDiff = 0;
