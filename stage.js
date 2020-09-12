@@ -84,6 +84,20 @@ function stage4(){
 
 function stage5(){
     return new Stage(function (t) {
+        t.sockets = [new Socket(480, 10, "origin", "up", 45, colorBlue)];
+        t.sockets.push(new Socket(10, 480, "con", "left"));
+        t.sockets.push(new Socket(950, 480, "con", "right"));
+        t.sockets.push(new Socket(480, 950, "win", "down"));
+        t.enemies = [new Byter(500, 900)];
+        t.sockets[1].setConnection(t.sockets[2]);
+        t.ropes = [t.sockets[0].rope];
+        PLAYER.spawnPoint.x = 100;
+        PLAYER.spawnPoint.y = 100;
+    })
+}
+
+function stage6(){
+    return new Stage(function (t) {
         t.sockets = [new Socket(480, 10, "origin", "up", 50, colorBlue)];
         t.sockets.push(new Socket(10, 425, "con", "left"));
         t.sockets.push(new Socket(950, 505, "con", "right"));
@@ -97,7 +111,7 @@ function stage5(){
     })
 }
 
-function stage6(){
+function stage7(){
     return new Stage(function (t) {
         t.sockets = [new Socket(950, 100, "origin", "right", 70, colorBlue)];
         t.sockets.push(new Socket(600, 950, "win", "down"));

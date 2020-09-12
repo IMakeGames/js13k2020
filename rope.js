@@ -28,7 +28,6 @@ function RopeSection(initX, initY, amount, color, origin = null){
         if(t.recolecting && t.checkInOrigin()){
             t.stopRecolection();
         }
-
         let tries = 21;
         do{
             if(fixedHb){
@@ -37,13 +36,10 @@ function RopeSection(initX, initY, amount, color, origin = null){
             }
             tries--;
         }while(!t.solve(true) && tries > 0)
-
         if(t.attached === PLAYER) {
             let distMc = t.getDist(PLAYER.center());
             if (distMc.dist > PLAYER_MAX_DIST) {
                 PLAYER.move(distMc.normalX * (distMc.dist -PLAYER_MAX_DIST), distMc.normalY * (distMc.dist -PLAYER_MAX_DIST));
-                // PLAYER.x += distMc.normalX * (distMc.dist -PLAYER_MAX_DIST);
-                // PLAYER.y += distMc.normalY * (distMc.dist -PLAYER_MAX_DIST);
             }
         }
         if(t.attached){
@@ -194,12 +190,12 @@ function RopeSection(initX, initY, amount, color, origin = null){
 
     t.consume = () =>{
         t.child.parent = null;
-        t.child.setForDestroy(60);
+        t.child.setForDestroy(10);
         t.child.assignOrigin(t.getParent().origin);
         t.getParent().origin = null;
         stage.ropes = stage.ropes.filter(rope => rope !== t.getParent()).concat([t,t.child]);
         t.reverse();
-        t.setForDestroy(60);
+        t.setForDestroy(10);
     }
 
     t.setForDestroy = (delay)=>{
@@ -252,7 +248,7 @@ function RopeSection(initX, initY, amount, color, origin = null){
         if(t.state != "normal" && t.currentOutlineDelay){
             t.currentOutlineDelay--;
         }
-        if((!t.parent && !t.attached) || (t.state != "normal" && !t.currentOutlineDelay)){
+        if(((!t.parent && !t.attached) || t.state != "normal") && !t.currentOutlineDelay){
             t.drawOutline(t.state == "destroy" ? "255,255,255" : null);
         }
         if(t.child){
@@ -271,6 +267,7 @@ function RopeSection(initX, initY, amount, color, origin = null){
             ctx.strokeRect(t.x - ROPE_SECTION_WIDTH/2, t.y-ROPE_SECTION_HEIGHT/2, 5, 5);
         }
     };
+
     t.drawOutline = (col) =>{
         ctx.beginPath();
         let per = t.animationFrameCounter/t.ropeAnimationFrames;
@@ -373,7 +370,7 @@ function Socket(x,y,type,dir,amount,color){
                 t.triggered = false;
                 stage.trigger();
             }
-        }else if(!t.rope){
+        }else if(!t.rope && t.color != colorRed){
             t.rope = new RopeSection(t.conPt[0], t.conPt[1], t.amount, t.color,t);
             stage.ropes.push(t.rope);
         }
