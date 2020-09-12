@@ -62,10 +62,10 @@ function RopeSection(initX, initY, amount, color, origin = null){
         let objList = [PLAYER];
         objList = objList.concat(stage.enemies);
         //TODO implement this better
-        //objList = objList.concat(stage.solidBodies);
+        objList = objList.concat(stage.solidBodies);
         for(let i = 0;i < objList.length;i++){
             let distEn = t.getDist(objList[i].center());
-            let minDist = 10;
+            let minDist = 15;
             if(objList[i] instanceof Player || objList[i] instanceof Byter){
                 minDist = PLAYER_MIN_DIST;
             }
@@ -296,39 +296,33 @@ var SOCKET_HEIGHT = 50;
 
 function Socket(x,y,type,dir,amount,color){
     let t = this;
-    let socketWidth = SOCKET_WIDTH;
-    let socketHeight = SOCKET_HEIGHT - 30;
-    let xoffset = 0;
-    let yoffset = 0;
-    let xAdded = 0;
-    let yAdded = 35;
-    let xAdded2 = 0;
-    let yAdded2 = 15;
-    let rectW = socketWidth + 10;
-    let rectH = socketHeight - 5;
+    t.outer = []
+    t.hbData = []
+    t.hitboxes = []
+    t.inner = null;
     if(dir == "left"){
-        t.conPt = [x + 38, y + 25];
-        t.setVals(x,y,SOCKET_WIDTH, SOCKET_HEIGHT);
-    }else if(dir == "right"){
-        xoffset = 10;
-        t.conPt = [x + 2, y + 25];
-        t.setVals(x,y,SOCKET_WIDTH, SOCKET_HEIGHT);
-    }else{
-        t.setVals(x,y,SOCKET_HEIGHT, SOCKET_WIDTH);
-        yAdded = 0;
-        xAdded = 35;
-        xAdded2 = 15;
-        yAdded2 = 0;
-        socketWidth = SOCKET_HEIGHT - 30;
-        socketHeight = SOCKET_WIDTH;
-        rectW = socketWidth - 5;
-        rectH = socketHeight + 10;
+        t.outer  = [[x,y,SOCKET_HEIGHT,15],[x,y + 35,SOCKET_HEIGHT,15]]
+        t.hbData = [[x+15,y],[x+15,y+35],[x+35,y],[x+35,y+35]]
+        t.inner  = [x, y+15, SOCKET_WIDTH, 20]
+        t.conPt  = [x + 38, y + 25]
+    }
+    if(dir == "right"){
+        t.outer  = [[x - 10,y,SOCKET_HEIGHT,15],[x - 10, y + 35,SOCKET_HEIGHT,15]]
+        t.hbData = [[x+5,y],[x+5,y+35],[x-10,y],[x-10,y+35]]
+        t.inner  = [x, y+15, SOCKET_WIDTH, 20]
+        t.conPt  = [x + 2, y + 25]
     }
     if(dir == "up"){
-        t.conPt = [x + 25, y + 38];
-    }else if(dir == "down"){
-        yoffset = 10;
-        t.conPt = [x + 25, y];
+        t.outer  = [[x,y,15,SOCKET_HEIGHT],[x + 35, y,15,SOCKET_HEIGHT]]
+        t.hbData = [[x,y+15],[x+35,y+15],[x,y+35],[x+35,y+35]]
+        t.inner  = [x +15, y ,20, SOCKET_WIDTH]
+        t.conPt  = [x + 25, y + 38];
+    }
+    if(dir == "down"){
+        t.outer  = [[x,y - 10,15,SOCKET_HEIGHT],[x + 35, y - 10,15,SOCKET_HEIGHT]]
+        t.hbData = [[x,y+5],[x+35,y+5],[x,y-10],[x+35,y-10]]
+        t.inner  = [x + 15,y , 20, SOCKET_WIDTH]
+        t.conPt  = [x + 25, y];
     }
     t.triggered = false;
     t.type = type;
@@ -337,6 +331,8 @@ function Socket(x,y,type,dir,amount,color){
         t.color = color;
     }else if(type == "win"){
         t.color = colorBlue
+    }else if(type == "trigger"){
+        t.color = colorYellow;
     }else{
         t.color = colorGray;
     }
@@ -344,7 +340,9 @@ function Socket(x,y,type,dir,amount,color){
     t.winFrameCounter = 0;
     t.amount = amount;
     t.rope = type == "origin" && amount > 0 ? new RopeSection(t.conPt[0],t.conPt[1],t.amount, color, t) : null;
-    t.hitboxes =[new Hitbox(t.x - xoffset,t.y - yoffset,rectW,rectH), new Hitbox(t.x - xoffset + xAdded,t.y - yoffset + yAdded,rectW,rectH)];
+    for(let i = 0; i<t.hbData.length;i++){
+        t.hitboxes.push(new Hitbox(t.hbData[i][0],t.hbData[i][1],15,15));
+    }
     stage.solidBodies = stage.solidBodies.concat(t.hitboxes);
     t.update = ()=>{
         if(t.type != "origin"){
@@ -375,22 +373,18 @@ function Socket(x,y,type,dir,amount,color){
             stage.ropes.push(t.rope);
         }
         ctx.fillStyle = '#00c745';
-        for(let i = 0; i< t.hitboxes.length;i++){
-            ctx.fillRect(t.hitboxes[i].x,t.hitboxes[i].y,t.hitboxes[i].w,t.hitboxes[i].h);
-            if(debugMode){
-                ctx.strokeStyle = 'pink';
-                ctx.lineWidth = 1;
+        for(let i = 0; i< t.outer.length;i++){
+            ctx.fillRect(t.outer[i][0],t.outer[i][1],t.outer[i][2],t.outer[i][3]);
+        }
+        ctx.fillStyle = "rgb("+t.color+")";
+        ctx.fillRect(t.inner[0],t.inner[1] ,t.inner[2], t.inner[3]);
+        if(debugMode){
+            ctx.strokeStyle = 'pink';
+            ctx.lineWidth = 2;
+            for(let i = 0; i< t.hitboxes.length;i++){
                 ctx.strokeRect(t.hitboxes[i].x,t.hitboxes[i].y,t.hitboxes[i].w,t.hitboxes[i].h);
             }
         }
-        ctx.fillStyle = "rgb("+t.color+")";
-        ctx.fillRect(t.x + xAdded2,t.y + yAdded2,socketWidth,socketHeight);
-        if(t.connection && !t.rope){
-            ctx.fillStyle = "black";
-            ctx.font = '20px monospace';
-            ctx.fillText('=', t.x + (t.w*3/8), t.y + (t.h*5/8));
-        }
-
         if(t.type == "win"){
             if(t.rope){
                 t.winFrameCounter++;

@@ -30,7 +30,7 @@
     var maxVel = 6;
     var gameState = "game_over";
 
-    var currentStage = 4;
+    var currentStage = 7;
     var debugMode = false;
 
     var messageFrames = 0;
@@ -99,7 +99,7 @@
         //Stage is defined here
         PLAYER = new Player(0,0);
         textProc = new TextPrinter();
-        stages = [stage1, stage2,stage3, stage4, stage5, stage6, stage7];
+        stages = [stage1, stage2,stage3, stage4, stage5, stage6, stage7, stage8];
         menuOBox = {
             "menu": new optBox(700, 600, 60,"play", function(){
             stage = stages[currentStage]();
