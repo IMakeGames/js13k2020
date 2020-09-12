@@ -216,15 +216,19 @@ function stage7(){
 
 function stage8(){
     return new Stage(function (t) {
-        t.sockets = [new Socket(250, 10, "origin", "up", 70, colorBlue)];
+        t.sockets = [new Socket(250, 10, "origin", "up", 50, colorBlue)];
         t.sockets.push(new Socket(950, 300, "con", "right"));
-        t.sockets.push(new Socket(10, 500, "con", "left"));
+        t.sockets.push(new Socket(10, 450, "con", "left"));
         t.sockets.push(new Socket(950, 800, "win", "right"));
         t.sockets.push(new Socket(500, 950, "origin", "down", 50, colorYellow));
-        t.sockets.push(new Socket(950, 500, "trigger", "right"));
+        //t.sockets.push(new Socket(950, 500, "trigger", "right"));
+        t.sockets.push(new Socket(10, 600, "trigger", "left"));
         t.holes = [genHoles([new Hole(175, -10, 200, 200)])];
         t.holes.push(genHoles([new Hole(810, 225, 200, 200)], ));
-        t.holes.push(genHoles([new Hole(0, 425, 200, 200)], ));
+        t.holes.push(genHoles([new Hole(0, 375, 200, 200)], false));
+        t.holes.push(genHoles([new Hole(810, 725, 200, 200)], false));
+        t.enemies = [new Byter(900, 650, )];
+        t.enemies.push(new Byter(100, 200));
         t.ropes = [t.sockets[0].rope, t.sockets[4].rope];
         t.sockets[1].setConnection(t.sockets[2]);
         PLAYER.spawnPoint.x = 100;

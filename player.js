@@ -41,7 +41,7 @@ function Player(initX, initY){
                     }
                 } else if (rop = stage.ropes.find(rope => t.getDist(rope).dist < 50)) {
                     //Conditions: must be close to the mouse pos && not already attached to a socket
-                    if (rop.getDist(mousePos).dist < 20 && rop.color != colorRed){
+                    if (rop.getDist(mousePos).dist < 20 && rop.state != "destroy" && rop.color != colorRed){
                         rop.attach(t, rop);
                     }
                 } else if (!t.dashCoolDown && (Date.now() - lastMouseUp < 270)) {

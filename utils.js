@@ -84,18 +84,27 @@ function TextPrinter(){
     }
 }
 
-function optBox(x,y,h,str, callback, color){
-    let t = this;
-    let w = textProc.getStrLength(str, (h-20)/5) + 10;
-    t.setVals(x,y,w,h);
-    t.draw = ()=>{
-        ctx.strokeStyle= color ? "rgb(" + color +")": '#00c745';
-        ctx.lineWidth = 10;
-        ctx.strokeRect(x,y,w,h);
-        textProc.drawText(str,  x + 10,y+10,(h-20)/5, color);
+var probDist = (members) =>{
+    let distArray = [];
+    let membersLength = members.length;
+    let dividend = 100;
+    if(dividend%membersLength != 0){
+        dividend -= dividend%membersLength;
     }
-    t.executeCallback = () =>{
-        callback();
+    let fraction = dividend/membersLength
+    let fractionMult = fraction;
+    let index = 0;
+    for (let i = 0; i < 100; i++) {
+        distArray.push(members[index]);
+        if(i > fractionMult){
+            index++;
+            fractionMult += fraction;
+        }
     }
+    return distArray;
 }
-optBox.prototype = Hitbox();
+
+var randomPer = ()=>{
+    let rand = Math.random();
+    return Math.round(rand*100);
+}

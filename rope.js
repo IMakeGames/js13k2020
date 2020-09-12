@@ -1,6 +1,6 @@
 var LINK_DIST_CONSTRAINT = 10;
 var ROPE_ANIMATION_FRAMES = 100;
-var ROPE_RECOLECTION_FRAMES = 240;
+var ROPE_RECOLECTION_FRAMES = 180;
 var ROPE_SECTION_WIDTH = 5;
 var PLAYER_MIN_DIST = 17;
 var PLAYER_MAX_DIST = 31;
@@ -62,7 +62,7 @@ function RopeSection(initX, initY, amount, color, origin = null){
         let objList = [PLAYER];
         objList = objList.concat(stage.enemies);
         //TODO implement this better
-        objList = objList.concat(stage.solidBodies);
+        //objList = objList.concat(stage.solidBodies);
         for(let i = 0;i < objList.length;i++){
             let distEn = t.getDist(objList[i].center());
             let minDist = 15;
@@ -190,21 +190,21 @@ function RopeSection(initX, initY, amount, color, origin = null){
 
     t.consume = () =>{
         t.child.parent = null;
-        t.child.setForDestroy(10);
+        t.child.setForDestroy(5);
         t.child.assignOrigin(t.getParent().origin);
         t.getParent().origin = null;
         stage.ropes = stage.ropes.filter(rope => rope !== t.getParent()).concat([t,t.child]);
         t.reverse();
-        t.setForDestroy(10);
+        t.setForDestroy(5);
     }
 
     t.setForDestroy = (delay)=>{
         t.state = "destroy";
         t.currentOutlineDelay = delay;
-        t.ropeAnimationFrames = 10;
+        t.ropeAnimationFrames = 5;
         t.animationFrameCounter = 0;
         if(t.child){
-            t.child.setForDestroy(delay + 10);
+            t.child.setForDestroy(delay + 5);
         }
     }
 
@@ -227,8 +227,10 @@ function RopeSection(initX, initY, amount, color, origin = null){
         if(t.child) {
             t.child.reverse();
         }else{
-            t.attached.rope = null;
-            t.attached = null;
+            if(t.attached){
+                t.attached.rope = null;
+                t.attached = null;
+            }
             t.fixedX = t.x;
             t.fixedY = t.y;
         }
@@ -236,7 +238,7 @@ function RopeSection(initX, initY, amount, color, origin = null){
 
     t.checkEnemyProximity = ()=>{
         if(t.state != "destroy"){
-            if(munch = stage.enemies.find(muncher => t.getDist(muncher.center()).dist < 150 && muncher.state != "eating")){
+            if(munch = stage.enemies.find(muncher => t.getDist(muncher.center()).dist < 175 && muncher.state == "idle")){
                 munch.triggerFood(t);
             }else if(t.child){
                 t.child.checkEnemyProximity();
@@ -302,25 +304,21 @@ function Socket(x,y,type,dir,amount,color){
     t.inner = null;
     if(dir == "left"){
         t.outer  = [[x,y,SOCKET_HEIGHT,15],[x,y + 35,SOCKET_HEIGHT,15]]
-        t.hbData = [[x+15,y],[x+15,y+35],[x+35,y],[x+35,y+35]]
         t.inner  = [x, y+15, SOCKET_WIDTH, 20]
         t.conPt  = [x + 38, y + 25]
     }
     if(dir == "right"){
         t.outer  = [[x - 10,y,SOCKET_HEIGHT,15],[x - 10, y + 35,SOCKET_HEIGHT,15]]
-        t.hbData = [[x+5,y],[x+5,y+35],[x-10,y],[x-10,y+35]]
         t.inner  = [x, y+15, SOCKET_WIDTH, 20]
         t.conPt  = [x + 2, y + 25]
     }
     if(dir == "up"){
         t.outer  = [[x,y,15,SOCKET_HEIGHT],[x + 35, y,15,SOCKET_HEIGHT]]
-        t.hbData = [[x,y+15],[x+35,y+15],[x,y+35],[x+35,y+35]]
         t.inner  = [x +15, y ,20, SOCKET_WIDTH]
         t.conPt  = [x + 25, y + 38];
     }
     if(dir == "down"){
         t.outer  = [[x,y - 10,15,SOCKET_HEIGHT],[x + 35, y - 10,15,SOCKET_HEIGHT]]
-        t.hbData = [[x,y+5],[x+35,y+5],[x,y-10],[x+35,y-10]]
         t.inner  = [x + 15,y , 20, SOCKET_WIDTH]
         t.conPt  = [x + 25, y];
     }
@@ -340,8 +338,8 @@ function Socket(x,y,type,dir,amount,color){
     t.winFrameCounter = 0;
     t.amount = amount;
     t.rope = type == "origin" && amount > 0 ? new RopeSection(t.conPt[0],t.conPt[1],t.amount, color, t) : null;
-    for(let i = 0; i<t.hbData.length;i++){
-        t.hitboxes.push(new Hitbox(t.hbData[i][0],t.hbData[i][1],15,15));
+    for(let i = 0; i<t.outer.length;i++){
+        t.hitboxes.push(new Hitbox(t.outer[i][0],t.outer[i][1],t.outer[i][2],t.outer[i][3]));
     }
     stage.solidBodies = stage.solidBodies.concat(t.hitboxes);
     t.update = ()=>{

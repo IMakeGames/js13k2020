@@ -114,14 +114,14 @@ function Hitbox(x, y, w, h) {
 
 var BYTER_WIDTH = 30;
 var BYTER_HEIGHT = 30;
-
+var idleAnimLengthProbDist = probDist([60,120,180]);
 function Byter(x, y, type = "sleeper") {
     let t = this;
     t.food = null;
     t.state = "idle";
     t.animState = "idle";
     // 1 = right; -1 = left
-    t.direction = 0;
+    t.direction = Math.round(Math.random());
     t.type = type;
     if(type == "sleeper"){
         t.color = colorYellowAlph;
@@ -135,7 +135,7 @@ function Byter(x, y, type = "sleeper") {
     t.animation = new Anim({
         "exp": genAnim([0], 180),
         "walking": genAnim([0, 12], 60),
-        "idle": genAnim([0, 1, 0], 140),
+        "idle": genAnim([0, 0, 1, 0, 1, 0 ,0], idleAnimLengthProbDist[randomPer()]),
         "attack": genAnim([6, 7, 8], 10,1),
         "eating": genAnim([12, 13, 14], 10,1),
         "cd": genAnim([6], 180),
@@ -148,7 +148,7 @@ function Byter(x, y, type = "sleeper") {
         let fillText = "";
         if (t.frameCounter > 0) t.frameCounter--;
         let playerDistance = t.getDist(PLAYER.center());
-        t.mag -= t.mag * mouseAcc / (maxVel * 0.8);
+        t.mag -= t.mag * mouseAcc / (maxVel * 0.7);
         ctx.fillStyle = 'orange';
         ctx.font = '40px Extrabold sans-serif';
         let xDiff = 0;
@@ -162,8 +162,8 @@ function Byter(x, y, type = "sleeper") {
                     xDiff = t.cX() - t.spawnPoint.x;
                     fillText = "...";
                     t.animState = "walking";
-                    t.x -= spawnDist.normalX * 2;
-                    t.y -= spawnDist.normalY * 2;
+                    t.x -= spawnDist.normalX * 3;
+                    t.y -= spawnDist.normalY * 3;
                 } else {
                     t.animState = "idle";
                     if(t.animation.anim["idle"].counter == 0){
@@ -246,7 +246,7 @@ function Byter(x, y, type = "sleeper") {
         let impactDist = (PLAYER.w + t.w) / 2;
         if (PLAYER.state != "falling" && playerDistance.dist <= impactDist) {
             PLAYER.impact(playerDistance.angle);
-            if (t.state != "eating" && t.state != "sleeping") {
+            if (t.state != "eating" && t.state != "sleep") {
                 t.mag = 3;
                 t.changeState("cooldown");
             }
@@ -370,3 +370,19 @@ var genAnim = (sprites, duration, reverse = 0) => {
         add: 1
     }
 }
+
+function optBox(x,y,h,str, callback, color){
+    let t = this;
+    let w = textProc.getStrLength(str, (h-20)/5) + 10;
+    t.setVals(x,y,w,h);
+    t.draw = ()=>{
+        ctx.strokeStyle= color ? "rgb(" + color +")": '#00c745';
+        ctx.lineWidth = 10;
+        ctx.strokeRect(x,y,w,h);
+        textProc.drawText(str,  x + 10,y+10,(h-20)/5, color);
+    }
+    t.executeCallback = () =>{
+        callback();
+    }
+}
+optBox.prototype = Hitbox();
