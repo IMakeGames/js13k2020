@@ -56,7 +56,7 @@ function RopeSection(initX, initY, amount, color, origin = null){
 
     t.solve = (bool)=>{
         let linkDistConstraint = LINK_DIST_CONSTRAINT;
-        if(t.recolecting){
+        if(t.recolecting && t.state != "destroy"){
             linkDistConstraint = 0;
         }
         let objList = [PLAYER];
@@ -344,7 +344,7 @@ function Socket(x,y,type,dir,amount,color){
     stage.solidBodies = stage.solidBodies.concat(t.hitboxes);
     t.update = ()=>{
         if(t.type != "origin"){
-            if(t.rope){
+            if(t.rope && t.rope.state != "destroy"){
                 if(t.connection && !t.connection.rope){
                     t.connection.color = t.color
                     t.connection.amount = t.rope.amount;
@@ -358,9 +358,10 @@ function Socket(x,y,type,dir,amount,color){
                 t.rope.update({x:t.conPt[0], y:t.conPt[1]});
             }else if(t.type == "con" && t.connection.type == "origin"){
                 t.color = colorGray;
-                stage.ropes = stage.ropes.filter(rop => rop !== t.connection.rope);
+                //stage.ropes = stage.ropes.filter(rop => rop !== t.connection.rope);
                 t.connection.color = t.color;
-                t.connection.rope = null;
+                t.connection.rope.consume();
+                //t.connection.rope = null;
                 t.connection.type = "con";
             }else if(t.type == "trigger" && t.triggered){
                 t.triggered = false;
