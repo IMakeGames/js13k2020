@@ -130,6 +130,26 @@ function stage7(){
     })
 }
 
+function stage7(){
+    return new Stage(function (t) {
+        t.sockets = [new Socket(950, 100, "origin", "right", 70, colorBlue)];
+        t.sockets.push(new Socket(600, 950, "win", "down"));
+        t.sockets.push(new Socket(750, 10, "origin", "up", 15, colorRed));
+        t.sockets.push(new Socket(950, 250, "end", "right"));
+        t.sockets.push(new Socket(500, 950, "origin", "down", 50, colorYellow));
+        t.sockets.push(new Socket(10, 500, "trigger", "left"));
+        t.holes = [genHoles([new Hole(0, 300, 365, 75), new Hole(300, -10, 75, 385)])];
+        t.holes.push(genHoles([new Hole(635, 300, 365, 75), new Hole(625, -10, 75, 385)], false));
+        t.enemies = [new Byter(100, 100, "active")];
+        t.ropes = [t.sockets[0].rope, t.sockets[4].rope];
+        t.sockets[2].rope.attach(t.sockets[3], t.sockets[3].conPt);
+        // t.sockets[1].setConnection(t.sockets[2]);
+        PLAYER.spawnPoint.x = 100;
+        PLAYER.spawnPoint.y = 850;
+    })
+}
+
+
 var genHoles = (holeList, active = true) => {
     let hidden = document.createElement('canvas');
     hidden.width = 60;

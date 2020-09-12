@@ -30,7 +30,7 @@
     var maxVel = 6;
     var gameState = "playing";
 
-    var currentStage = 0;
+    var currentStage = 6;
     var debugMode = false;
 
     var messageFrames = 0;
@@ -44,6 +44,7 @@
     var PLAYER;
     var stages;
     var stage;
+    var textProc;
     let triggerWin = ()=>{
         gameState = "win";
         currentStage++;
@@ -87,6 +88,7 @@
 
         //Stage is defined here
         PLAYER = new Player(0,0);
+        textProc = new TextPrinter();
         stages = [stage1, stage2,stage3, stage4, stage5, stage6, stage7];
         stage = stages[currentStage]();
         lastTime = Date.now();
@@ -112,6 +114,7 @@
             background.update();
             stage.update();
             PLAYER.update();
+            textProc.drawText("hello wolrd", 450,450, 5, colorRed);
             //=========
             //========= DISPLAY HEALTH
             ctx.fillStyle= 'green'
@@ -155,7 +158,7 @@
         requestAnimationFrame(gameIteration);
     }
     var SPRITE_SHEET = new Image();
-    SPRITE_SHEET.src = "enemy_sprite_alpha_alt.png";
+    SPRITE_SHEET.src = "sprite_with_font_colored_alpha.png";
     SPRITE_SHEET.onload = function() {
         loadVars();
         gameIteration();
