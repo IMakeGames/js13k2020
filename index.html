@@ -9,6 +9,7 @@
 <style>
     #main {position:fixed;width:99.5vmin;top:49.9%;left:49.9%;transform:translateX(-50%)translateY(-50%);}
 </style>
+<script src="utils.js"></script>
 <script src="objects.js"></script>
 <script src="stage.js"></script>
 <script src="player.js"></script>
@@ -29,7 +30,7 @@
     var maxVel = 6;
     var gameState = "playing";
 
-    var currentStage = 4;
+    var currentStage = 3;
     var debugMode = false;
 
     var messageFrames = 0;
@@ -39,56 +40,58 @@
     var colorBlue = "0,0,255";
     var colorGray = "126,126,126";
     var prepareWin = false;
-    //Set all smoothing effects off
-    ctx.imageSmoothingEnabled = false;
-    ctx.webkitImageSmoothingEnabled = false;
-    ctx.mozImageSmoothingEnabled = false;
-    ctx.msImageSmoothingEnabled = false;
-    ctx.oImageSmoothingEnabled = false;
-    //Set some drawing variables
-    ctx.strokeStyle = 'red';
-    ctx.fillStyle = 'green';
-    ctx.lineWidth = 5;
-    //=========
 
-    //========= CONTROLS MOUSE EVENTS
-    main.addEventListener('mousedown', e => {
-        isMousePressed = true;
-        mousePos.x = 1000*e.offsetX/main.getBoundingClientRect().width;
-        mousePos.y = 1000*e.offsetY/main.getBoundingClientRect().bottom;
-        lastMouseDown = Date.now();
-    });
-    main.addEventListener('mouseup', e => {
-        isMousePressed = false;
-        if(Date.now() - lastMouseDown < 117){
-            console.log("short click");
-            RESOLVE_SHORT_CLICK = true;
-        }else{
-            lastMouseUp = Date.now();
-        }
-    });
-    main.addEventListener('mousemove', e=> {
-        if(isMousePressed){
-            mousePos.x = 1000*e.offsetX/main.getBoundingClientRect().width;
-            mousePos.y = 1000*e.offsetY/main.getBoundingClientRect().bottom;
-        }
-    });
-    //=========
-
-    //Stage is defined here
-    var PLAYER = new Player(0,0);
-    var stages = [stage1, stage2,stage3, stage4, stage5];
-    var stage = stages[currentStage];
+    var PLAYER;
+    var stages;
+    var stage;
     let triggerWin = ()=>{
-        PLAYER.x = 100;
-        PLAYER.y = 100;
         gameState = "win";
         currentStage++;
         messageFrames = 120;
         stage = stages[currentStage];
     }
-    var lastTime = Date.now();
-    function game_tick() {
+    var lastTime;
+
+    function loadVars(){
+        //Set all smoothing effects off
+        setNoSmoothing(ctx);
+        //Set some drawing variables
+        ctx.strokeStyle = 'red';
+        ctx.fillStyle = 'green';
+        ctx.lineWidth = 5;
+        //=========
+
+        //========= CONTROLS MOUSE EVENTS
+        main.addEventListener('mousedown', e => {
+            isMousePressed = true;
+            mousePos.x = 1000*e.offsetX/main.getBoundingClientRect().width;
+            mousePos.y = 1000*e.offsetY/main.getBoundingClientRect().bottom;
+            lastMouseDown = Date.now();
+        });
+        main.addEventListener('mouseup', e => {
+            isMousePressed = false;
+            if(Date.now() - lastMouseDown < 117){
+                console.log("short click");
+                RESOLVE_SHORT_CLICK = true;
+            }else{
+                lastMouseUp = Date.now();
+            }
+        });
+        main.addEventListener('mousemove', e=> {
+            if(isMousePressed){
+                mousePos.x = 1000*e.offsetX/main.getBoundingClientRect().width;
+                mousePos.y = 1000*e.offsetY/main.getBoundingClientRect().bottom;
+            }
+        });
+        //=========
+
+        //Stage is defined here
+        PLAYER = new Player(0,0);
+        stages = [stage1, stage2,stage3, stage4, stage5, stage6];
+        stage = stages[currentStage];
+        lastTime = Date.now();
+    }
+    function gameIteration() {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         //ctx.fillStyle = "#1c041a";
         ctx.fillStyle = "#2e072b";
@@ -126,9 +129,6 @@
                 }
                 initx+= 10 + width;
             }
-            if(prepareWin){
-
-            }
             //=========
         }
         if(gameState == "game_over"){
@@ -137,6 +137,9 @@
             ctx.fillText("Game Over", 75, 440);
         }
         if(gameState == "win"){
+            stage.update();
+            ctx.fillStyle = "#2e072b";
+            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             ctx.fillStyle = 'green';
             ctx.font = '60px Extrabold sans-serif';
             ctx.fillText("You Won Level" + currentStage, 75, 440);
@@ -149,9 +152,14 @@
         ctx.strokeStyle= '#00c745'
         ctx.lineWidth= 20;
         ctx.strokeRect(0,0,1000,1000);
-        requestAnimationFrame(game_tick);
+        requestAnimationFrame(gameIteration);
     }
-    game_tick();
+    var SPRITE_SHEET = new Image();
+    SPRITE_SHEET.src = "enemy_sprite_alpha_alt.png";
+    SPRITE_SHEET.onload = function() {
+        loadVars();
+        gameIteration();
+    }
 
 </script>
 </body>

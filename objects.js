@@ -1,5 +1,4 @@
-var spriteSheet = new Image();
-spriteSheet.src = "enemy_sprite_alpha.png";
+
 var TIME_BEFORE_FALL = 50;
 var FALL_FRAMES_HALVED = 30;
 
@@ -81,7 +80,7 @@ function Hitbox(x, y, w, h) {
             let t = this;
             if (stage.holes && t.state != "falling") {
                 let inFallRange = false;
-                let holes = stage.holes.holes;
+                let holes = stage.getHoles();
                 for (let i = 0; i < holes.length; i++) {
                     if (t.x >= holes[i].x && t.x + t.w <= holes[i].x + holes[i].w && t.y >= holes[i].y && t.y + t.h <= holes[i].y + holes[i].h) {
                         inFallRange = true;
@@ -125,6 +124,11 @@ function Byter(x, y, type = "sleeper") {
     // 1 = right; -1 = left
     t.direction = 0;
     t.type = type;
+    if(type == "sleeper"){
+        t.color = colorYellow;
+    }else if(type == "active"){
+        t.color = colorRed;
+    }
     t.eatingFrameConter = 0;
     t.frameCounter = 0;
     t.scale =
@@ -138,7 +142,7 @@ function Byter(x, y, type = "sleeper") {
         "cd": genAnim([6], 180),
         "falling": genAnim([6], 180),
         "sleep": genAnim([2], 180)
-    },3,4, 0);
+    },3,4, 0, t.color);
     t.update = () => {
         let scale = 1;
         let reSpawnPos = 0;
@@ -258,7 +262,7 @@ function Byter(x, y, type = "sleeper") {
         t.animation.animate(t.x - t.w *scale/ 2, t.y - t.h * scale / 2 - reSpawnPos * t.y, t.animState, scale, t.direction);
 
         if (debugMode) {
-            ctx.strokeStyle = "orange";
+            ctx.strokeStyle = "rgb("+t.color+")";
             ctx.lineWidth = 2;
             ctx.strokeRect(t.x, t.y - reSpawnPos * t.y, t.w * scale, t.h * scale);
         }
@@ -299,10 +303,24 @@ Byter.prototype = Hitbox();
 var SPRITE_WIDTH = 22;
 var SPRITE_HEIGHT = 17;
 
-function Anim(anim, mult, xOffset, yOffset) {
+function Anim(anim, mult, xOffset, yOffset, color) {
     let t = this;
     t.anim = anim;
     t.spriteData = [];
+    t.sSheet = SPRITE_SHEET;
+    if(color){
+        let hidden = document.createElement('canvas');
+        hidden.width = 132;
+        hidden.height = 51;
+        let ctxHidden = hidden.getContext("2d");
+        setNoSmoothing(ctxHidden)
+        ctxHidden.clearRect(0, 0, 132, 51);
+        ctxHidden.fillStyle = "rgba("+color+", 0.5)"
+        ctxHidden.drawImage(SPRITE_SHEET,0,0);
+        ctxHidden.globalCompositeOperation = "source-atop"
+        ctxHidden.fillRect(0,0,132,51);
+        t.sSheet = hidden;
+    }
     for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 6; j++) {
             t.spriteData.push([SPRITE_WIDTH * j, SPRITE_HEIGHT * i]);
@@ -325,6 +343,9 @@ function Anim(anim, mult, xOffset, yOffset) {
     }
 
     t.animate = (x, y, state, scl, direction, increment = 0) => {
+        if(t.color){
+            ctx.drawImage(t.sSheet,100,100);
+        }
         let thisAnim = t.anim[state]
         let spriteDatum = t.spriteData[thisAnim.spriteArray[thisAnim.counter]]
         let scale = 1
@@ -337,7 +358,7 @@ function Anim(anim, mult, xOffset, yOffset) {
         y -= yOffset;
         ctx.save();
         ctx.scale(scale, 1);
-        ctx.drawImage(spriteSheet, spriteDatum[0], spriteDatum[1], SPRITE_WIDTH, SPRITE_HEIGHT, x, y, SPRITE_WIDTH * mult *scl, SPRITE_HEIGHT * mult *scl);
+        ctx.drawImage(t.sSheet, spriteDatum[0], spriteDatum[1], SPRITE_WIDTH, SPRITE_HEIGHT, x, y, SPRITE_WIDTH * mult *scl, SPRITE_HEIGHT * mult *scl);
         ctx.restore();
         thisAnim.counter += Math.round(thisAnim.add + increment);
         if (thisAnim.counter >= thisAnim.duration) {
@@ -364,10 +385,10 @@ var genAnim = (sprites, duration, reverse = 0) => {
     }
 }
 
-    var getNextWholeDivisor = (dividend, divisor) => {
-        if (dividend % divisor == 0) {
-            return divisor;
-        } else {
-            return getNextWholeDivisor(dividend, divisor - 1);
-        }
+var getNextWholeDivisor = (dividend, divisor) => {
+    if (dividend % divisor == 0) {
+        return divisor;
+    } else {
+        return getNextWholeDivisor(dividend, divisor - 1);
     }
+}

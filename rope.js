@@ -46,6 +46,9 @@ function RopeSection(initX, initY, amount, color, origin = null){
                 // PLAYER.y += distMc.normalY * (distMc.dist -PLAYER_MAX_DIST);
             }
         }
+        if(t.attached){
+            t.checkEnemyProximity()
+        }
         if(t.recolectionFrameCounter > 0){
             t.recolectionFrameCounter--;
             if(!t.recolectionFrameCounter){
@@ -56,11 +59,6 @@ function RopeSection(initX, initY, amount, color, origin = null){
     };
 
     t.solve = (bool)=>{
-        if(t.state != "destroy"){
-            if(munch = stage.enemies.find(muncher => t.getDist(muncher.center()).dist < 150 && muncher.state != "eating")){
-                munch.triggerFood(t);
-            }
-        }
         let linkDistConstraint = LINK_DIST_CONSTRAINT;
         if(t.recolecting){
             linkDistConstraint = 0;
@@ -231,6 +229,16 @@ function RopeSection(initX, initY, amount, color, origin = null){
         }
     };
 
+    t.checkEnemyProximity = ()=>{
+        if(t.state != "destroy"){
+            if(munch = stage.enemies.find(muncher => t.getDist(muncher.center()).dist < 150 && muncher.state != "eating")){
+                munch.triggerFood(t);
+            }else if(t.child){
+                t.child.checkEnemyProximity();
+            }
+        }
+    }
+
     t.draw = ()=>{
         if(t.state != "normal" && t.currentOutlineDelay){
             t.currentOutlineDelay--;
@@ -248,13 +256,6 @@ function RopeSection(initX, initY, amount, color, origin = null){
             ctx.stroke();
             t.child.draw();
         }
-        // ctx.beginPath();
-        // ctx.arc(t.x, t.y, 5,0, 2 * Math.PI, false);
-        // ctx.lineWidth = 1;
-        // ctx.strokeStyle = '#003300';
-        // ctx.stroke();
-
-        // ctx.arc(t.x, t.y, 5,0, 2 * Math.PI, false);
         if(debugMode){
             ctx.lineWidth = 1;
             ctx.strokeStyle = '#003300';
@@ -323,6 +324,7 @@ function Socket(x,y,type,dir,amount,color){
         yoffset = 10;
         t.conPt = [x + 25, y];
     }
+    t.triggered = false;
     t.type = type;
     t.connection = null;
     if(color){
@@ -345,6 +347,9 @@ function Socket(x,y,type,dir,amount,color){
                     t.connection.rope = new RopeSection(t.connection.conPt[0], t.connection.conPt[1], t.rope.amount, t.color,t.connection);
                     stage.ropes.push(t.connection.rope);
                     t.connection.type = "origin";
+                }else if(t.type == "trigger" && !t.triggered){
+                    t.triggered = true;
+                    stage.trigger();
                 }
                 t.rope.update({x:t.conPt[0], y:t.conPt[1]});
             }else if(t.type == "con" && t.connection.type == "origin"){
@@ -353,7 +358,13 @@ function Socket(x,y,type,dir,amount,color){
                 t.connection.color = t.color;
                 t.connection.rope = null;
                 t.connection.type = "con";
+            }else if(t.type == "trigger" && t.triggered){
+                t.triggered = false;
+                stage.trigger();
             }
+        }else if(!t.rope){
+            t.rope = new RopeSection(t.conPt[0], t.conPt[1], t.amount, t.color,t);
+            stage.ropes.push(t.rope);
         }
         ctx.fillStyle = '#00c745';
         ctx.fillRect(t.x - xoffset,t.y - yoffset,rectW,rectH);

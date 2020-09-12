@@ -2,17 +2,29 @@ function Stage(setup){
     let t = this;
     t.enemies = [];
     t.sockets = [];
-    t.holes = null;
+    t.holes = [];
     t.ropes = [];
 
     t.update = ()=>{
         if(!t.loaded) t.setup();
-        if(t.holes){
-            t.holes.update();
-        }
+        t.holes.forEach(holes => holes.active ? holes.update() : null);
         t.sockets.forEach(socket => socket.update());
         t.ropes.forEach(rope => !rope.attached ? rope.update():null);
         t.enemies.forEach(enemy => enemy.update());
+    }
+    t.getHoles = ()=>{
+        let retHoles = []
+        for(let i = 0; i< t.holes.length;i++){
+            if(t.holes[i].active){
+                retHoles = retHoles.concat(t.holes[i].holes);
+            }
+        }
+        return retHoles;
+    }
+    t.trigger = ()=>{
+        for(let i = 0; i< t.holes.length;i++){
+            t.holes[i].active = !t.holes[i].active;
+        }
     }
 
     t.setup = ()=>{
@@ -33,7 +45,7 @@ var stage1 = new Stage(function(t){
 var stage2 = new Stage(function(t){
     t.sockets = [new Socket(950, 700, "origin","right", 40,colorBlue)];
     t.sockets.push(new Socket(480, 950, "win", "down"));
-    t.holes = genHoles([new Hole(10,300,365,75), new Hole(300,10,75,365)])
+    t.holes = [genHoles([new Hole(0,300,375,75), new Hole(300,-10,75,385)])]
     t.ropes = [t.sockets[0].rope]
     PLAYER.spawnPoint.x = 100;
     PLAYER.spawnPoint.y = 100;
@@ -67,7 +79,7 @@ var stage5 = new Stage(function (t) {
     t.sockets.push(new Socket(10, 425, "con","left"));
     t.sockets.push(new Socket(950, 505, "con", "right"));
     t.sockets.push(new Socket(425, 950, "win", "down"));
-    t.holes= genHoles([new Hole(0,510,600,100), new Hole(400,390,600,100)])
+    t.holes= [genHoles([new Hole(0,510,600,100), new Hole(400,390,600,100)])];
     t.enemies = [new Byter(810,810, "active")];
     t.ropes = [t.sockets[0].rope];
     t.sockets[1].setConnection(t.sockets[2]);
@@ -75,7 +87,24 @@ var stage5 = new Stage(function (t) {
     PLAYER.spawnPoint.y = 850;
 })
 
-var genHoles = (holeList)=>{
+var stage6 = new Stage(function (t) {
+    t.sockets = [new Socket(950, 100, "origin","right", 70,colorBlue)];
+    t.sockets.push(new Socket(600, 950, "win", "down"));
+    t.sockets.push(new Socket(750, 10, "origin","up", 15, colorRed));
+    t.sockets.push(new Socket(950, 250, "end", "right"));
+    t.sockets.push(new Socket(500, 950, "origin","down", 50, colorYellow));
+    t.sockets.push(new Socket(10, 500, "trigger","left"));
+    t.holes = [genHoles([new Hole(0,300,365,75), new Hole(300,-10,75,385)])];
+    t.holes.push(genHoles([new Hole(635,300,365,75), new Hole(625,-10,75,385)], false));
+    t.enemies = [new Byter(100,100, "active")];
+    t.ropes = [t.sockets[0].rope, t.sockets[4].rope];
+    t.sockets[2].rope.attach(t.sockets[3], t.sockets[3].conPt);
+    // t.sockets[1].setConnection(t.sockets[2]);
+    PLAYER.spawnPoint.x = 100;
+    PLAYER.spawnPoint.y = 850;
+})
+
+var genHoles = (holeList, active = true)=>{
     let hidden = document.createElement('canvas');
     hidden.width = 60;
     hidden.height = 60;
@@ -83,6 +112,7 @@ var genHoles = (holeList)=>{
     return {
         holes: holeList,
         canvas: hidden,
+        active: active,
         signs: [[1,1,1],[1,1,1],[1,1,1],[1,1,1]],
         colors: [[50,0,0],[80,15,40],[110,30,80],[140,45,120]],
         //colors: [[0,25,50],[25,50,75],[50,75,0],[75,0,25]],

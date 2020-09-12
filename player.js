@@ -29,9 +29,14 @@ function Player(initX, initY){
         if(!t.frameCounter) {
             if (RESOLVE_SHORT_CLICK && !t.dashFrames) {
                 if (t.rope) {
+                    let attachToSoc = false;
                     if (soc = stage.sockets.find(socket => t.getDist({x: socket.conPt[0], y: socket.conPt[1]}).dist < 50 && !socket.rope)) {
-                        t.rope.attach(soc, soc.conPt);
-                    } else {
+                        if(soc.color === colorGray || soc.color === t.rope.color){
+                            t.rope.attach(soc, soc.conPt);
+                            attachToSoc = true;
+                        }
+                    }
+                    if(!attachToSoc) {
                         t.rope.detach();
                     }
                 } else if (rop = stage.ropes.find(rope => t.getDist(rope).dist < 50)) {
@@ -114,10 +119,18 @@ function Player(initX, initY){
         if(t.rope && holdPoint){
             ctx.save();
             ctx.scale(1, 1);
-            ctx.drawImage(spriteSheet, 110, 34, SPRITE_WIDTH, SPRITE_HEIGHT, holdPoint.x - SPRITE_WIDTH/2, holdPoint.y  - SPRITE_HEIGHT/2, SPRITE_WIDTH, SPRITE_HEIGHT);
+            ctx.drawImage(SPRITE_SHEET, 110, 34, SPRITE_WIDTH, SPRITE_HEIGHT, holdPoint.x - SPRITE_WIDTH/2, holdPoint.y  - SPRITE_HEIGHT/2, SPRITE_WIDTH, SPRITE_HEIGHT);
             ctx.restore();
         }
-        t.animation.animate(t.x - t.w *scale/ 2, t.y - t.h * scale / 2 - reSpawnPos * t.y, t.animState, scale, t.direction, animSpd);
+        let x, y;
+        if(!t.direction){
+            x = t.x + t.w + 8 - t.w * scale * 2;
+            y = t.y + t.h + 8 - t.h * scale * 2;
+        }else{
+            x = t.x - t.w - 32 + t.w * scale * 2;
+            y = t.y - t.h * scale * 2 + 27;
+        }
+        t.animation.animate(x, y - reSpawnPos * t.y, t.animState, scale, t.direction, animSpd);
         if(debugMode){
             ctx.lineWidth = 1;
             ctx.strokeStyle = 'orange';
