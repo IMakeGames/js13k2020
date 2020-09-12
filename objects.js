@@ -31,14 +31,13 @@ function Hitbox(x, y, w, h) {
             a.x += xVar;
             b.y += yVar;
             if (a.x > 10 && a.x + t.w < 990) {
-                if (stage.sockets.filter(soc => a.checkColission(soc)).length < 1) {
+                if (stage.solidBodies.filter(soc => a.checkColission(soc)).length < 1) {
                     t.x += xVar;
                 }
                 // t.x += xVar;
-
             }
             if (b.y > 10 && b.y + t.h < 990) {
-                if (stage.sockets.filter(soc => b.checkColission(soc)).length < 1) {
+                if (stage.solidBodies.filter(soc => b.checkColission(soc)).length < 1) {
                     t.y += yVar;
                 }
                 // t.y += yVar;
@@ -382,13 +381,5 @@ var genAnim = (sprites, duration, reverse = 0) => {
         reverse: reverse,
         yOffset: 0,
         add: 1
-    }
-}
-
-var getNextWholeDivisor = (dividend, divisor) => {
-    if (dividend % divisor == 0) {
-        return divisor;
-    } else {
-        return getNextWholeDivisor(dividend, divisor - 1);
     }
 }

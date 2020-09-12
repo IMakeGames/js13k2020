@@ -29,7 +29,7 @@ function RopeSection(initX, initY, amount, color, origin = null){
             t.stopRecolection();
         }
 
-        let tries = 31;
+        let tries = 21;
         do{
             if(fixedHb){
                 t.x = fixedHb.x;
@@ -63,22 +63,31 @@ function RopeSection(initX, initY, amount, color, origin = null){
         if(t.recolecting){
             linkDistConstraint = 0;
         }
-        let distMc = t.getDist(PLAYER.center());
-        if(distMc.dist <= PLAYER_MIN_DIST) {
-            bool = false;
-            let per = distMc.dist/PLAYER_MIN_DIST;
-            // let invPer = (maxDist - distMc.dist)/maxDist;
-            let invPer = 1 - per;
-            if(t.child){
-                t.x += distMc.normalX*3*per;
-                t.y += distMc.normalY*3*per;
+        let objList = [PLAYER];
+        objList = objList.concat(stage.enemies);
+        //TODO implement this better
+        //objList = objList.concat(stage.solidBodies);
+        for(let i = 0;i < objList.length;i++){
+            let distEn = t.getDist(objList[i].center());
+            let minDist = 10;
+            if(objList[i] instanceof Player || objList[i] instanceof Byter){
+                minDist = PLAYER_MIN_DIST;
             }
-            // PLAYER.x -= distMc.normalX*5*invPer;
-            // PLAYER.y -= distMc.normalY*5*invPer;
-            PLAYER.move(-distMc.normalX*5*invPer, -distMc.normalY*5*invPer);
-            //TODO: Check if there is a problem while recoiling: could go through rope. maybe.
-            PLAYER.mag = PLAYER.dashFrames ? -dashMaxVel/8 : PLAYER.mag;
+            if(distEn.dist <= minDist) {
+                bool = false;
+                let per = distEn.dist/PLAYER_MIN_DIST;
+                let invPer = 1 - per;
+                if(t.child){
+                    t.x += distEn.normalX*3*per;
+                    t.y += distEn.normalY*3*per;
+                }
+                objList[i].move(-distEn.normalX*3*invPer, -distEn.normalY*3*invPer);
+                if(objList[i] instanceof Player && objList[i].dashFrames){
+                    objList[i].mag = -dashMaxVel/8;
+                }
+            }
         }
+        objList = null;
         if(t.child){
             if(!t.child.parent) t.child.parent = t;
             let dist = t.getDist(t.child, linkDistConstraint);
@@ -338,6 +347,8 @@ function Socket(x,y,type,dir,amount,color){
     t.winFrameCounter = 0;
     t.amount = amount;
     t.rope = type == "origin" && amount > 0 ? new RopeSection(t.conPt[0],t.conPt[1],t.amount, color, t) : null;
+    t.hitboxes =[new Hitbox(t.x - xoffset,t.y - yoffset,rectW,rectH), new Hitbox(t.x - xoffset + xAdded,t.y - yoffset + yAdded,rectW,rectH)];
+    stage.solidBodies = stage.solidBodies.concat(t.hitboxes);
     t.update = ()=>{
         if(t.type != "origin"){
             if(t.rope){
@@ -367,19 +378,20 @@ function Socket(x,y,type,dir,amount,color){
             stage.ropes.push(t.rope);
         }
         ctx.fillStyle = '#00c745';
-        ctx.fillRect(t.x - xoffset,t.y - yoffset,rectW,rectH);
-        ctx.fillRect(t.x - xoffset + xAdded,t.y - yoffset + yAdded,rectW,rectH);
+        for(let i = 0; i< t.hitboxes.length;i++){
+            ctx.fillRect(t.hitboxes[i].x,t.hitboxes[i].y,t.hitboxes[i].w,t.hitboxes[i].h);
+            if(debugMode){
+                ctx.strokeStyle = 'pink';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(t.hitboxes[i].x,t.hitboxes[i].y,t.hitboxes[i].w,t.hitboxes[i].h);
+            }
+        }
         ctx.fillStyle = "rgb("+t.color+")";
         ctx.fillRect(t.x + xAdded2,t.y + yAdded2,socketWidth,socketHeight);
         if(t.connection && !t.rope){
             ctx.fillStyle = "black";
             ctx.font = '20px monospace';
             ctx.fillText('=', t.x + (t.w*3/8), t.y + (t.h*5/8));
-        }
-        if(debugMode){
-            ctx.strokeStyle = 'pink';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(t.x,t.y,t.w,t.h);
         }
 
         if(t.type == "win"){

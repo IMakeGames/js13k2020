@@ -119,7 +119,7 @@ function Player(initX, initY){
         if(t.rope && holdPoint){
             ctx.save();
             ctx.scale(1, 1);
-            ctx.drawImage(SPRITE_SHEET, 110, 34, SPRITE_WIDTH, SPRITE_HEIGHT, holdPoint.x - SPRITE_WIDTH/2, holdPoint.y  - SPRITE_HEIGHT/2, SPRITE_WIDTH, SPRITE_HEIGHT);
+            ctx.drawImage(SPRITE_SHEET, 110, 34, SPRITE_WIDTH, SPRITE_HEIGHT, holdPoint.x - SPRITE_WIDTH/2, holdPoint.y  - SPRITE_HEIGHT/2, SPRITE_WIDTH*1.5, SPRITE_HEIGHT*1.5);
             ctx.restore();
         }
         let x, y;
