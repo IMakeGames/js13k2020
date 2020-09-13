@@ -120,15 +120,6 @@ function Stage(setup) {
     }
 }
 
-var colorBlue = "0,0,255";
-var colorBlueAlph = "0,0,255,0.5";
-var colorRed = "255,0,0";
-var colorRedAlph = "255,0,0,0.5";
-var colorYellow = "255,255,0";
-var colorYellowAlph = "255,255,0,0.5";
-var colorPink = "255,0,255";
-var colorGray = "126,126,126";
-
 var stage1Data = [
     [
         [480, 10, "origin", "up", 90, colorBlue],

@@ -15,6 +15,7 @@ function Player(initX, initY){
     t.direction = 0;
     t.health = 3;
     t.rope = null;
+    t.dashAfterImg = [];
     t.animation = new Anim({
         "walking": genAnim([3, 4, 5, 9, 10, 11, 15], 60),
         "idle": genAnim([3, 16, 3, 3], 240),
@@ -118,6 +119,10 @@ function Player(initX, initY){
             RESOLVE_SHORT_CLICK = false;
 
             if (t.dashFrames) {
+                if(t.dashFrames%2 == 0){
+                    let sheet = COLORED_SPRITE_SHEETS[SOLID_COLORS[t.dashFrames/2 - 1]];
+                    t.dashAfterImg.push([sheet,t.x,t.y,10]);
+                }
                 t.dashFrames--;
                 if (!t.dashFrames) {
                     t.dashCoolDown = TOTAL_DASH_CD;
@@ -152,6 +157,31 @@ function Player(initX, initY){
         }else{
             x = t.x - t.w - 32 + t.w * scale * 2;
             y = t.y - t.h * scale * 2 + 27;
+        }
+        let byeMember = null
+        it(t.dashAfterImg.length,(i)=>{
+            let x = t.dashAfterImg[i][1] + Math.cos(t.ang) * t.mag;
+            let y = t.dashAfterImg[i][2] + Math.sin(t.ang) * t.mag;
+            let scale = 1;
+            if (t.direction & 1) {
+                scale = -1;
+                x = -x - SPRITE_WIDTH * 4 + 20;
+            } else {
+                x -= 20;
+            }
+            y -= 22;
+            ctx.save();
+            ctx.scale(scale, 1);
+            ctx.globalAlpha = t.dashAfterImg[i][3]/7;
+            ctx.drawImage(t.dashAfterImg[i][0],88,17,22,17,x,y,22*4,17*4);
+            ctx.restore();
+            t.dashAfterImg[i][3]--;
+            if(t.dashAfterImg[i][3] < 0){
+                byeMember = t.dashAfterImg[i];
+            }
+        });
+        if(byeMember){
+            t.dashAfterImg = t.dashAfterImg.filter(img => img !==byeMember);
         }
         t.animation.animate(x, y - reSpawnPos * t.y, t.animState, scale, t.direction, animSpd);
         if(debugMode){
