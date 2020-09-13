@@ -20,11 +20,11 @@ function Stage(setup) {
     }
     t.getHoles = () => {
         let retHoles = []
-        for (let i = 0; i < t.holes.length; i++) {
+        it(t.holes.length,(i)=>{
             if (t.holes[i].active) {
                 retHoles = retHoles.concat(t.holes[i].holes);
             }
-        }
+        })
         return retHoles;
     }
 
@@ -35,12 +35,12 @@ function Stage(setup) {
         let gradients = [];
         ctx.save();
         ctx.beginPath();
-        for (let i = 0; i < t.getHoles().length; i++) {
+        it(t.getHoles().length,(i)=>{
             ctx.moveTo(t.getHoles()[i].x, t.getHoles()[i].y);
-            for (let j = 0; j < t.getHoles()[i].points.length; j++) {
+            it(t.getHoles()[i].points.length,(j)=>{
                 ctx.lineTo(t.getHoles()[i].points[j][0], t.getHoles()[i].points[j][1]);
-            }
-        }
+            });
+        });
         ctx.clip("nonzero");
 
         //SETUP HIDDEN CANVAS
@@ -54,29 +54,29 @@ function Stage(setup) {
             [60, 60]
         ];
         //CREATE GRADIENTS
-        for (let i = 0; i < 4; i++) {
+        it(4,(i)=>{
             gradients.push(ctxHidden.createLinearGradient(gv[i][0], gv[i][1], 30, 30));
-        }
+        });
         let order = [0, 1, 2, 3, 2, 1, 0];
 
         //UPDATE COLORS
-        for (let i = 0; i < 4; i++) {
-            for (let j = 0; j < 3; j++) {
+        it(4,(i)=>{
+            it(3,(j)=>{
                 if (t.colors[i][j] < t.ranges[j].min || t.colors[i][j] > t.ranges[j].max) {
                     t.signs[i][j] *= -1;
                 }
                 t.colors[i][j] += t.signs[i][j];
-            }
-        }
+            });
+        });
         //CREATE COLOR STOPS AND DRAW GRADIENTS
-        for (let i = 0; i < 4; i++) {
+        it(4,(i)=>{
             let gradient = gradients[i];
-            for (let k = 0; k < order.length; k++) {
+            it(order.length,(k)=>{
                 gradient.addColorStop(t.stops[k], 'rgb(' + t.colors[order[k]][0] + ', ' + t.colors[order[k]][1] + ', ' + t.colors[order[k]][2] + ')');
-            }
+            });
             ctxHidden.fillStyle = gradient;
             ctxHidden.fillRect(gv[i][0] / 2, gv[i][1] / 2, 30, 30);
-        }
+        });
 
         //MAKE PATTERN OUT OF CANVAS AND DRAW
         let pattern = ctx.createPattern(hidden, 'repeat');
@@ -86,9 +86,9 @@ function Stage(setup) {
     }
 
     t.trigger = () => {
-        for (let i = 0; i < t.holes.length; i++) {
+        it(t.holes.length,(i)=>{
             t.holes[i].active = !t.holes[i].active;
-        }
+        });
     }
 
     t.setup = () => {
@@ -221,7 +221,7 @@ var genStage = (data)=>{
     let solidBodies = []
     let con = null;
     let red = null;
-    for(let i = 0;i<data[0].length;i++){
+    it(data[0].length, (i)=>{
         let soc = new Socket(data[0][i]);
         if(soc.type == "con"){
             if(con){
@@ -243,18 +243,18 @@ var genStage = (data)=>{
         }
         solidBodies = solidBodies.concat(soc.hitboxes);
         sockets.push(soc);
-    }
-    for(let i = 0;i<data[1].length;i++) {
+    });
+    it(data[1].length, (i)=>{
         let hole = genHoles([],data[1][i][1]);
-        for(let j = 0; j < data[1][i][0].length;j++){
+        it(data[1][i][0].length, (j)=>{
             let holeData = data[1][i][0][j];
             hole.holes.push(new Hole(holeData));
-        }
+        });
         holes.push(hole);
-    }
-    for(let i = 0;i<data[2].length;i++){
+    });
+    it(data[2].length, (i)=>{
         enemies.push(new Byter(data[2][i]));
-    }
+    });
     return new Stage(function(t){
         t.sockets = sockets;
         t.ropes = ropes;
@@ -265,11 +265,6 @@ var genStage = (data)=>{
     });
 }
 
-var iterate = (limit, fn)=>{
-    for(let i = 0; i < limit; i++){
-        fn(i);
-    }
-}
 var genHoles = (holeList, active = true) => {
     return {
         holes: holeList,
@@ -286,34 +281,34 @@ function Hole([x, y, w, h]) {
     let divisor = getNextWholeDivisor(t.w, sectionLength);
     let sections = t.w / divisor
     let variableLength = 10;
-    for (let i = 1; i <= sections; i++) {
-        t.points.push([t.x + divisor * i, t.y + yOffset + variableLength]);
+    it(sections, (i)=>{
+        t.points.push([t.x + divisor * (i + 1), t.y + yOffset + variableLength]);
         variableLength = Math.abs(variableLength - 10);
-    }
+    });
     //right
     divisor = getNextWholeDivisor(t.h, sectionLength);
     sections = t.h / divisor
     variableLength = 10;
-    for (let i = 1; i <= sections; i++) {
-        t.points.push([t.x + t.w - variableLength, t.y + divisor * i + yOffset]);
+    it(sections, (i)=>{
+        t.points.push([t.x + t.w - variableLength, t.y + divisor * (i + 1) + yOffset]);
         variableLength = Math.abs(variableLength - 10);
-    }
+    });
     //bottom
     divisor = getNextWholeDivisor(t.w, sectionLength);
     sections = t.w / divisor
     variableLength = 10;
-    for (let i = 1; i <= sections; i++) {
-        t.points.push([t.x + t.w - divisor * i, t.y + t.h - variableLength + yOffset]);
+    it(sections, (i)=>{
+        t.points.push([t.x + t.w - divisor * (i + 1), t.y + t.h - variableLength + yOffset]);
         variableLength = Math.abs(variableLength - 10);
-    }
+    });
     //left
     divisor = getNextWholeDivisor(t.h, sectionLength);
     sections = t.h / divisor
     variableLength = 10;
-    for (let i = 1; i <= sections; i++) {
-        t.points.push([t.x + variableLength, t.y + t.h - divisor * i + yOffset]);
+    it(sections, (i)=>{
+        t.points.push([t.x + variableLength, t.y + t.h - divisor * (i+1) + yOffset]);
         variableLength = Math.abs(variableLength - 10);
-    }
+    });
 }
 
 Hole.prototype = Hitbox();

@@ -16,7 +16,7 @@ var setNoSmoothing = (context) =>{
 var COLORED_SPRITE_SHEETS = [];
 var loadColoredSpriteSheets = ()=>{
     let colors = [colorRed, colorRedAlph, colorBlue, colorBlueAlph, colorYellow, colorYellowAlph];
-    for(let i = 0;i < colors.length;i++){
+    it(colors.length, (i)=>{
         let hidden = document.createElement('canvas');
         hidden.width = 132;
         hidden.height = 61;
@@ -33,7 +33,7 @@ var loadColoredSpriteSheets = ()=>{
         ctxHidden.globalCompositeOperation = "source-atop"
         ctxHidden.fillRect(0,0,132,61);
         COLORED_SPRITE_SHEETS[colors[i]] = hidden;
-    }
+    });
 }
 
 function TextPrinter(){
@@ -60,7 +60,7 @@ function TextPrinter(){
             sSheet = COLORED_SPRITE_SHEETS[color];
         }
         xInd = 0;
-        for(let i = 0; i < str.length;i++){
+        it(str.length, (i)=>{
             if(str[i] != ' '){
                 ctx.drawImage(sSheet, t.characterArray[str[i]].x, 51 + t.characterArray[str[i]].y ,5,5, x + 6*xInd*scale, y, 5*scale, 5*scale);
                 xInd += 1;
@@ -68,18 +68,18 @@ function TextPrinter(){
                 xInd += 0.4
             }
             //ctx.drawImage(sSheet, t.characterArray[str[i]].x, 51 + t.characterArray[str[i]].y ,5,5, x + addition, y, 5*scale, 5*scale);
-        }
+        });
     }
 
     t.getStrLength = (str, scale)=>{
         let length = 0;
-        for(let i = 0; i < str.length;i++){
+        it(str.length, (i)=>{
             if(str[i] != ' '){
                 length += 6*scale;
             }else{
                 length += 3*scale;
             }
-        }
+        });
         return length;
     }
 }
@@ -94,17 +94,23 @@ var probDist = (members) =>{
     let fraction = dividend/membersLength
     let fractionMult = fraction;
     let index = 0;
-    for (let i = 0; i < 100; i++) {
+    it(100, (i)=>{
         distArray.push(members[index]);
         if(i > fractionMult){
             index++;
             fractionMult += fraction;
         }
-    }
+    });
     return distArray;
 }
 
 var randomPer = ()=>{
     let rand = Math.random();
     return Math.round(rand*100);
+}
+
+var it = (limit, fn)=>{
+    for(let i = 0; i < limit; i++){
+        fn(i);
+    }
 }

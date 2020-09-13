@@ -80,11 +80,11 @@ function Hitbox(x, y, w, h) {
             if (stage.holes && t.state != "falling") {
                 let inFallRange = false;
                 let holes = stage.getHoles();
-                for (let i = 0; i < holes.length; i++) {
+                it(holes.length, (i)=>{
                     if (t.x >= holes[i].x && t.x + t.w <= holes[i].x + holes[i].w && t.y >= holes[i].y && t.y + t.h <= holes[i].y + holes[i].h) {
                         inFallRange = true;
                     }
-                }
+                });
                 if (inFallRange) {
                     if (!t.fallTimer) {
                         t.fallTimer = Date.now();
@@ -307,11 +307,11 @@ function Anim(anim, mult, xOffset, yOffset, color) {
     t.anim = anim;
     t.spriteData = [];
     t.sSheet = color ? COLORED_SPRITE_SHEETS[color] : SPRITE_SHEET;
-    for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 6; j++) {
+    it(3, (i)=>{
+        it(6, (j)=>{
             t.spriteData.push([SPRITE_WIDTH * j, SPRITE_HEIGHT * i]);
-        }
-    }
+        });
+    });
 
     for (key in t.anim) {
         let member = t.anim[key];
@@ -319,13 +319,13 @@ function Anim(anim, mult, xOffset, yOffset, color) {
         let div = fraction;
         let frameInd = 0;
         member.spriteArray = []
-        for (let i = 0; i < member.duration; i++) {
+        it(member.duration, (i)=>{
             if (i > div) {
                 frameInd++;
                 div += fraction;
             }
             member.spriteArray.push(member.sprites[frameInd]);
-        }
+        });
     }
 
     t.animate = (x, y, state, scl, direction, increment = 0) => {

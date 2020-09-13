@@ -6,18 +6,18 @@ function genBackground(){
         update(){
             let t = this;
             if(!t.init){
-                for(let i = 0;i<totalRows;i++){
+                it(totalRows,(i)=>{
                     t.rows.push(t.row(60+35*i))
-                }
+                });
                 t.init = true;
             }
             let rand = Math.random();
             let activate = true;
-            for(let i = 0;i<totalRows;i++){
+            it(totalRows, (i)=>{
                 if(!t.rows[i].update() && activate){
                     activate = !t.rows[i].attemptActivate(rand)
                 }
-            }
+            });
         },
         row(yPos){
             let totalAnim = 38;

@@ -63,7 +63,7 @@ function RopeSection(initX, initY, amount, color, origin = null){
         objList = objList.concat(stage.enemies);
         //TODO implement this better
         //objList = objList.concat(stage.solidBodies);
-        for(let i = 0;i < objList.length;i++){
+        it(objList.length, (i)=>{
             let distEn = t.getDist(objList[i].center());
             let minDist = 15;
             if(objList[i] instanceof Player || objList[i] instanceof Byter){
@@ -82,7 +82,7 @@ function RopeSection(initX, initY, amount, color, origin = null){
                     objList[i].mag = -dashMaxVel/8;
                 }
             }
-        }
+        });
         objList = null;
         if(t.child){
             if(!t.child.parent) t.child.parent = t;
@@ -338,9 +338,9 @@ function Socket([x,y,type,dir,amount,color]){
     t.winFrameCounter = 0;
     t.amount = amount;
     t.rope = type == "origin" && amount > 0 ? new RopeSection(t.conPt[0],t.conPt[1],t.amount, color, t) : null;
-    for(let i = 0; i<t.outer.length;i++){
+    it(t.outer.length, (i)=>{
         t.hitboxes.push(new Hitbox(t.outer[i][0],t.outer[i][1],t.outer[i][2],t.outer[i][3]));
-    }
+    });
     t.update = ()=>{
         if(t.type != "origin"){
             if(t.rope && t.rope.state != "destroy"){
@@ -371,17 +371,17 @@ function Socket([x,y,type,dir,amount,color]){
             stage.ropes.push(t.rope);
         }
         ctx.fillStyle = '#00c745';
-        for(let i = 0; i< t.outer.length;i++){
+        it(t.outer.length, (i)=>{
             ctx.fillRect(t.outer[i][0],t.outer[i][1],t.outer[i][2],t.outer[i][3]);
-        }
+        });
         ctx.fillStyle = "rgb("+t.color+")";
         ctx.fillRect(t.inner[0],t.inner[1] ,t.inner[2], t.inner[3]);
         if(debugMode){
             ctx.strokeStyle = 'pink';
             ctx.lineWidth = 2;
-            for(let i = 0; i< t.hitboxes.length;i++){
+            it(t.hitboxes.length, (i)=>{
                 ctx.strokeRect(t.hitboxes[i].x,t.hitboxes[i].y,t.hitboxes[i].w,t.hitboxes[i].h);
-            }
+            });
         }
         if(t.type == "win"){
             if(t.rope){
