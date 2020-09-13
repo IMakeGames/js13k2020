@@ -33,9 +33,6 @@ function Stage(setup) {
         }else{
             t.winFrameCounter = 0;
         }
-         ctx.fillStyle = "white"
-        ctx.font = '25px serif';
-        ctx.fillText('ropes in list: ' + t.ropes.length, 50, 910);
     }
     t.getHoles = () => {
         let retHoles = []
@@ -116,6 +113,7 @@ function Stage(setup) {
         PLAYER.state = "normal";
         PLAYER.frameCounter = 0;
         PLAYER.health = 3;
+        PLAYER.dashAfterImg = [];
         t.loaded = true;
     }
 }

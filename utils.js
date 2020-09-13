@@ -22,9 +22,10 @@ var colorYellowAlph = "255,255,0,0.5";
 var colorPink = "255,0,255";
 var colorGray = "126,126,126";
 var colorGreen = "0,255,0";
+var colorGreenAlph = "0,255,0,0.5";
 var COLORED_SPRITE_SHEETS = [];
 var SOLID_COLORS = [colorRed, colorBlue, colorPink, colorGreen, colorYellow];
-var ALPHA_COLORS = [colorRedAlph, colorBlueAlph, colorYellowAlph]
+var ALPHA_COLORS = [colorRedAlph, colorBlueAlph, colorYellowAlph,colorGreenAlph]
 var loadColoredSpriteSheets = ()=>{
     let colors = SOLID_COLORS.concat(ALPHA_COLORS);
     it(colors.length, (i)=>{
@@ -61,9 +62,14 @@ function TextPrinter(){
         t.characterArray[String.fromCharCode(i)] = {x: 5*xInd,y: 5*yInd};
         xInd++;
     }
+    it(10,(i)=>{
+       t.characterArray[i+""] = {x:30+5*i,y:5}
+    });
     t.characterArray['('] = {x:80,y: 5};
     t.characterArray[')'] = {x:85,y: 5};
     t.characterArray['?'] = {x:0, y: 5}
+    t.characterArray['!'] = {x:25, y: 5}
+    t.characterArray['-'] = {x:5, y: 5}
 
     t.drawText = (str, x,y,scale,color)=>{
         let sSheet = SPRITE_SHEET;

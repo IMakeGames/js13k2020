@@ -28,14 +28,14 @@
     var dashAcc = 4;
     var dashMaxVel = 32;
     var maxVel = 6;
-    var gameState = "menu";
+    var gameState = "win";
     var flashFrames = 0;
-    var currentStage = 0;
+
+    var currentStage = 8;
     var debugMode = false;
 
     var messageFrames = 0;
     var background = genBackground();
-
     var PLAYER;
     var stages;
     var stage;
@@ -44,8 +44,6 @@
     let triggerWin = ()=>{
         gameState = "win";
         currentStage++;
-        messageFrames = 120;
-        stage = genStage(stages[currentStage]);
     }
     var lastTime;
 
@@ -101,6 +99,10 @@
             "game_over": new optBox(50, 550, 60,"try again?", function(){
                 stage = genStage(stages[currentStage]);
                 gameState = "playing"
+            }),
+            "win": new optBox(350, 600, 50,"continue", function(){
+                stage = genStage(stages[currentStage]);
+                gameState = "playing"
             })
         };
         stage = genStage(stages[0]);
@@ -112,10 +114,6 @@
         //ctx.fillStyle = "#1c041a";
         ctx.fillStyle = "#2e072b";
         ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        let dateNow = Date.now();
-        let interval = dateNow - lastTime;
-        lastTime = dateNow;
-        let frameRate = 1000/interval;
         // ctx.fillStyle = "white"
         // ctx.font = '25px serif';
         // ctx.fillText('player speed: ' + PLAYER.mag.toFixed(3), 50, 910);
@@ -135,29 +133,28 @@
             ctx.restore();
         }
         if(gameState == "playing"){
-            //========= DISPLAY AND UPDATE EVERYTHING
             background.update();
             stage.update();
             PLAYER.update();
-            //=========
-            //========= DISPLAY HEALTH
-            ctx.fillStyle= 'green'
+            ctx.fillStyle= 'rgb(27,207,45)'
             ctx.lineWidth = 5;
-            ctx.strokeStyle= 'green'
+            ctx.strokeStyle= 'rgb(27,207,45)'
             let totalHp= 3;
-            let width = 20;
-            let height = 30;
-            let y = 25;
-            let initx = 25;
+            let width = 30;
+            let height = 40;
+            let y = 50;
+            let initx = 50;
+            textProc.drawText("life", 75,20,4);
+            textProc.drawText("level " + currentStage, 800,25,4, colorGreenAlph);
             for(let i = 1;i<= totalHp;i++){
                 ctx.strokeRect(initx, y, width, height);
                 if(PLAYER.health >= i){
                     ctx.fillRect(initx+5, y+5, width-10, height-10);
                 }
-                initx+= 10 + width;
+                initx+= 20 + width;
             }
             if(flashFrames > 0){
-                ctx.fillStyle = "white";
+                ctx.fillStyle = "rgb(255,255,60)";
                 ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
                 flashFrames--;
             }
@@ -172,17 +169,16 @@
             ctx.restore();
         }
         if(gameState == "win"){
-            //stage.update();
-            ctx.fillStyle = "#2e072b";
-            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-            ctx.fillStyle = 'green';
-            ctx.font = '60px Extrabold sans-serif';
-            ctx.fillText("You Won Level" + currentStage, 75, 440);
-            if(!messageFrames){
-                gameState = "playing"
-            }else{
-                messageFrames--;
-            }
+            textProc.drawText("you restored", 150,200,10,colorBlue);
+            textProc.drawText("level "+currentStage, 100,300, 20, colorPink);
+            textProc.drawText("links! awesome!",200, 450, 7);
+            ctx.save();
+            ctx.rotate(5.6);
+            ctx.drawImage(COLORED_SPRITE_SHEETS[colorGreenAlph], 110, 34, 22, 17, -100, 950, 22*25, 16*25);
+            ctx.scale(-1,1)
+            ctx.rotate(4.9);
+            ctx.drawImage(COLORED_SPRITE_SHEETS[colorGreenAlph], 110, 34, 22, 17, -890,300, 22*25, 16*25);
+            ctx.restore();
         }
         ctx.strokeStyle= '#00c745'
         ctx.lineWidth= 20;
