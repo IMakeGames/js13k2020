@@ -113,6 +113,7 @@ function Stage(setup) {
         PLAYER.state = "normal";
         PLAYER.frameCounter = 0;
         PLAYER.health = 3;
+        PLAYER.rope = null;
         PLAYER.dashAfterImg = [];
         t.loaded = true;
     }
@@ -242,7 +243,7 @@ var stage9Data = [
     [300,750]
 ]
 
-var stage10Data = [
+var stage11Data = [
     [
         [10, 200, "origin", "left", 40, colorBlue],
         [950, 450, "win", "right"],
@@ -266,7 +267,7 @@ var stage10Data = [
     [300,750]
 ]
 
-var stage11Data = [
+var stage12Data = [
     [
         [950, 200, "origin", "right", 40, colorBlue],
         [500, 10, "origin", "up", 40, colorPink],
@@ -283,6 +284,31 @@ var stage11Data = [
     [[[[300, 300, 350, 350]]]],
     [[100, 700, "trooper",{x: 850,y:700}]],
     [800,200]
+]
+
+var stage10Data = [
+    [
+        [10, 650, "origin", "left", 40, colorBlue],
+        [600, 10, "origin", "up", 30, colorPink],
+        [400, 10, "win", "up"],
+        [950, 500, "win", "right", 0, colorPink],
+        [950, 700, "origin", "right",40, colorYellow],
+        [600, 950, "trigger", "down"],
+        [300, 950, "con", "down"],
+        [10, 150, "con", "left"],
+        [950, 300, "con", "right"],
+        [700, 950, "con", "down"],
+        [10, 500, "origin", "left", 45, colorRed],
+        [500, 950, "end", "down", 0, colorRed],
+        [10, 400, "origin", "left", 30, colorRed],
+        [300, 10, "end", "up", 0, colorRed],
+    ],
+    [
+        [[[800, -10, 75, 200], [800, 115, 200, 75],[0,75, 200, 200]],],
+        [[[0, 800, 200, 75], [125, 800, 75, 200]],false],
+    ],
+    [[60, 940, "active"],[950,50]],
+    [450,450]
 ]
 
 var genStage = (data)=>{

@@ -31,7 +31,7 @@
     gameState = "win",
     flashFrames = 0,
 
-    currentStage = 10,
+    currentStage = 11,
     debugMode = false,
 
     background = genBackground(),
@@ -41,8 +41,11 @@
     textProc,
     menuOBox = [],
     triggerWin = ()=>{
-        gameState = "win";
         currentStage++;
+        if(currentStage < 11){
+            gameState = "champion";
+        }
+        gameState = "win";
     }
 
     function loadVars(){
@@ -82,13 +85,10 @@
                 mousePos.y = 1000*e.offsetY/main.getBoundingClientRect().bottom;
             }
         });
-        //=========
-
-        //Stage is defined here
         PLAYER = new Player(0,0);
         textProc = new TextPrinter();
         stages = [stage1Data, stage2Data, stage3Data, stage4Data, stage5Data, stage6Data,
-            stage7Data, stage8Data, stage9Data, stage10Data, stage11Data];
+            stage7Data, stage8Data, stage9Data, stage10Data, stage11Data, stage12Data];
         menuOBox = {
             "menu": new optBox(700, 600, 60,"play", function(){
             stage = genStage(stages[currentStage]);
@@ -172,6 +172,19 @@
             if(currentStage-1 == 0){
                 textProc.drawText("(yes, the internet starts at 0)", 150, 510, 4);
             }
+            ctx.save();
+            ctx.rotate(5.6);
+            ctx.drawImage(COLORED_SPRITE_SHEETS[colorGreenAlph], 110, 34, 22, 17, -100, 950, 22*25, 16*25);
+            ctx.scale(-1,1)
+            ctx.rotate(4.9);
+            ctx.drawImage(COLORED_SPRITE_SHEETS[colorGreenAlph], 110, 34, 22, 17, -890,300, 22*25, 16*25);
+            ctx.restore();
+        }
+        if(gameState == "champion"){
+            textProc.drawText("congratulations!", 25,200,10,colorBlue);
+            textProc.drawText("all cleared ", 50,300, 15, colorPink);
+            textProc.drawText("you saved the internet!",25, 450, 7);
+            textProc.drawText("(for now at least)", 150, 510, 4);
             ctx.save();
             ctx.rotate(5.6);
             ctx.drawImage(COLORED_SPRITE_SHEETS[colorGreenAlph], 110, 34, 22, 17, -100, 950, 22*25, 16*25);
