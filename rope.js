@@ -238,8 +238,8 @@ function RopeSection(initX, initY, amount, color, origin = null){
 
     t.checkEnemyProximity = ()=>{
         if(t.state != "destroy"){
-            if(munch = stage.enemies.find(muncher => t.getDist(muncher.center()).dist < 175 && muncher.state == "idle")){
-                munch.triggerFood(t);
+            if(byter = stage.enemies.find(byter => !(t.color == colorBlue && byter.type == "trooper") && byter.state == "idle" && t.getDist(byter.center()).dist < 175)){
+                byter.triggerFood(t);
             }else if(t.child){
                 t.child.checkEnemyProximity();
             }
@@ -318,24 +318,28 @@ function Socket([x,y,type,dir,amount,color]){
     t.hbData = []
     t.hitboxes = []
     t.inner = null;
+    let plusWidth = 0;
+    if(type == "win"){
+        plusWidth = 10;
+    }
     if(dir == "left"){
         t.outer  = [[x,y,SOCKET_HEIGHT,15],[x,y + 35,SOCKET_HEIGHT,15]]
-        t.inner  = [x, y+15, SOCKET_WIDTH, 20]
+        t.inner  = [x, y+15, SOCKET_WIDTH+plusWidth, 20]
         t.conPt  = [x + 38, y + 25]
     }
     if(dir == "right"){
         t.outer  = [[x - 10,y,SOCKET_HEIGHT,15],[x - 10, y + 35,SOCKET_HEIGHT,15]]
-        t.inner  = [x, y+15, SOCKET_WIDTH, 20]
+        t.inner  = [x - plusWidth, y+15, SOCKET_WIDTH+plusWidth, 20]
         t.conPt  = [x + 2, y + 25]
     }
     if(dir == "up"){
         t.outer  = [[x,y,15,SOCKET_HEIGHT],[x + 35, y,15,SOCKET_HEIGHT]]
-        t.inner  = [x +15, y ,20, SOCKET_WIDTH]
+        t.inner  = [x +15, y ,20, SOCKET_WIDTH+plusWidth]
         t.conPt  = [x + 25, y + 38];
     }
     if(dir == "down"){
         t.outer  = [[x,y - 10,15,SOCKET_HEIGHT],[x + 35, y - 10,15,SOCKET_HEIGHT]]
-        t.inner  = [x + 15,y , 20, SOCKET_WIDTH]
+        t.inner  = [x + 15,y - plusWidth, 20, SOCKET_WIDTH+plusWidth]
         t.conPt  = [x + 25, y];
     }
     t.triggered = false;
@@ -405,7 +409,13 @@ function Socket([x,y,type,dir,amount,color]){
             let radius = 40*invPer;
             ctx.arc(t.conPt[0], t.conPt[1], radius,0, 2 * Math.PI, false);
             ctx.lineWidth = 15;
-            ctx.strokeStyle = 'rgba(' + t.color + ', '+ per +')';
+            let renderColor;
+            if(t.color == colorBlue){
+                renderColor = colorLightBlue;
+            }else{
+                renderColor = colorLightPink;
+            }
+            ctx.strokeStyle = 'rgba(' + renderColor + ', '+ per +')';
             ctx.stroke();
             t.animationFrameCounter++;
             if(t.animationFrameCounter > SOCKET_ANIMATION_FRAMES){

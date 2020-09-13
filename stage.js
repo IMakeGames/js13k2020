@@ -125,7 +125,7 @@ var stage1Data = [
     ],
     [],
     [],
-    [100,100]
+    [100,200]
 ]
 
 var stage2Data = [
@@ -135,7 +135,7 @@ var stage2Data = [
     ],
     [[[[0, 300, 375, 75], [300, -10, 75, 385]]]],
     [],
-    [100,100]
+    [100,200]
 ]
 
 var stage3Data = [
@@ -147,7 +147,7 @@ var stage3Data = [
     ],
     [],
     [],
-    [100,100]
+    [100,200]
 ]
 
 var stage4Data = [
@@ -158,8 +158,8 @@ var stage4Data = [
         [480, 950, "win", "down"]
     ],
     [],
-    [[900, 100]],
-    [100,100]
+    [[900, 200]],
+    [100,200]
 ]
 
 var stage5Data = [
@@ -171,7 +171,7 @@ var stage5Data = [
     ],
     [],
     [[500, 900]],
-    [100,100]
+    [100,200]
 ]
 
 var stage6Data = [
@@ -247,7 +247,7 @@ var stage10Data = [
         [10, 200, "origin", "left", 40, colorBlue],
         [950, 450, "win", "right"],
         [850, 950, "origin", "down", 40, colorPink],
-        [950, 200, "win", "right", 0,colorPink],
+        [950, 200, "win", "right", 0, colorPink],
         [10, 600, "origin", "left",40, colorYellow],
         [450, 950, "trigger", "down"],
         [100, 950, "trigger", "down"],
@@ -264,6 +264,25 @@ var stage10Data = [
     ],
     [[525, 450, "active"]],
     [300,750]
+]
+
+var stage11Data = [
+    [
+        [950, 200, "origin", "right", 40, colorBlue],
+        [500, 10, "origin", "up", 40, colorPink],
+        [350, 10, "win", "up"],
+        [10, 700, "win", "left", 0, colorPink],
+        [10, 200, "con", "left"],
+        [950, 550, "con", "right"],
+        [600, 950, "con", "down"],
+        [650, 10, "con", "up"],
+        [10, 400, "con", "left"],
+        [300, 950, "con", "down"],
+
+    ],
+    [[[[300, 300, 350, 350]]]],
+    [[100, 700, "trooper",{x: 850,y:700}]],
+    [800,200]
 ]
 
 var genStage = (data)=>{

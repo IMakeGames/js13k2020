@@ -17,35 +17,33 @@
 <script src="bganimation.js"></script>
 <script>
     //========= SETS UP GLOBAL VARIABLES
-    var main = document.getElementById("main");
-    var ctx = main.getContext("2d");
-    var mousePos = {x: 0, y: 0, w: 0, h: 0}
-    var isMousePressed = false;
-    var lastMouseUp = 0;
-    var lastMouseDown = 0;
-    var RESOLVE_SHORT_CLICK = false;
-    var mouseAcc = 1;
-    var dashAcc = 4;
-    var dashMaxVel = 32;
-    var maxVel = 6;
-    var gameState = "win";
-    var flashFrames = 0;
+    var main = document.getElementById("main"),
+    ctx = main.getContext("2d"),
+    mousePos = {x: 0, y: 0, w: 0, h: 0},
+    isMousePressed = false,
+    lastMouseUp = 0,
+    lastMouseDown = 0,
+    RESOLVE_SHORT_CLICK = false,
+    mouseAcc = 1,
+    dashAcc = 4,
+    dashMaxVel = 32,
+    maxVel = 6,
+    gameState = "win",
+    flashFrames = 0,
 
-    var currentStage = 8;
-    var debugMode = false;
+    currentStage = 10,
+    debugMode = false,
 
-    var messageFrames = 0;
-    var background = genBackground();
-    var PLAYER;
-    var stages;
-    var stage;
-    var textProc;
-    var menuOBox = [];
-    let triggerWin = ()=>{
+    background = genBackground(),
+    PLAYER,
+    stages,
+    stage,
+    textProc,
+    menuOBox = [],
+    triggerWin = ()=>{
         gameState = "win";
         currentStage++;
     }
-    var lastTime;
 
     function loadVars(){
         //Set all smoothing effects off
@@ -89,8 +87,8 @@
         //Stage is defined here
         PLAYER = new Player(0,0);
         textProc = new TextPrinter();
-        //stages = [stage1, stage2,stage3, stage4, stage5, stage6, stage7, stage8];
-        stages = [stage1Data, stage2Data, stage3Data, stage4Data, stage5Data, stage6Data, stage7Data, stage8Data, stage9Data, stage10Data];
+        stages = [stage1Data, stage2Data, stage3Data, stage4Data, stage5Data, stage6Data,
+            stage7Data, stage8Data, stage9Data, stage10Data, stage11Data];
         menuOBox = {
             "menu": new optBox(700, 600, 60,"play", function(){
             stage = genStage(stages[currentStage]);
@@ -111,7 +109,6 @@
     }
     function gameIteration() {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        //ctx.fillStyle = "#1c041a";
         ctx.fillStyle = "#2e072b";
         ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         // ctx.fillStyle = "white"
@@ -170,8 +167,11 @@
         }
         if(gameState == "win"){
             textProc.drawText("you restored", 150,200,10,colorBlue);
-            textProc.drawText("level "+currentStage, 100,300, 20, colorPink);
+            textProc.drawText("level "+(currentStage-1), 100,300, 20, colorPink);
             textProc.drawText("links! awesome!",200, 450, 7);
+            if(currentStage-1 == 0){
+                textProc.drawText("(yes, the internet starts at 0)", 150, 510, 4);
+            }
             ctx.save();
             ctx.rotate(5.6);
             ctx.drawImage(COLORED_SPRITE_SHEETS[colorGreenAlph], 110, 34, 22, 17, -100, 950, 22*25, 16*25);

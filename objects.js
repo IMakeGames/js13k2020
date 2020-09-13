@@ -125,23 +125,24 @@ function Hitbox(x, y, w, h) {
 var BYTER_WIDTH = 30;
 var BYTER_HEIGHT = 30;
 var idleAnimLengthProbDist = probDist([60,120,180]);
-function Byter([x, y, type = "sleeper"]) {
+function Byter([x, y, type = "sleeper", altPoint]) {
     let t = this;
     t.food = null;
     t.state = "idle";
     t.animState = "idle";
-    // 1 = right; -1 = left
+    t.altPoint = altPoint;
     t.direction = Math.round(Math.random());
     t.type = type;
     if(type == "sleeper"){
         t.color = colorYellowAlph;
     }else if(type == "active"){
         t.color = colorRedAlph;
+    }else if(type == "trooper"){
+        t.color = colorBlueAlph;
     }
     t.eatingFrameConter = 0;
     t.frameCounter = 0;
-    t.scale =
-        t.setVals(x, y, BYTER_WIDTH, BYTER_HEIGHT);
+    t.setVals(x, y, BYTER_WIDTH, BYTER_HEIGHT);
     t.animation = new Anim({
         "exp": genAnim([0], 180),
         "walking": genAnim([0, 12], 60),
@@ -151,15 +152,20 @@ function Byter([x, y, type = "sleeper"]) {
         "cd": genAnim([6], 180),
         "falling": genAnim([6], 180),
         "sleep": genAnim([2], 180)
-    },4,10, 0, t.color);
+    },3.5,10, 0, t.color);
     t.update = () => {
         let scale = 1;
         let reSpawnPos = 0;
         let fillText = "";
         if (t.frameCounter > 0) t.frameCounter--;
         let playerDistance = t.getDist(PLAYER.center());
-        t.mag -= t.mag * mouseAcc / (maxVel * 0.75);
-        ctx.fillStyle = 'orange';
+        let frac = 0.75;
+        let mult = 3;
+        if(type == "trooper"){
+            frac = 0.8;
+            mult = 5;
+        }
+        t.mag -= t.mag * mouseAcc / (maxVel * frac);
         ctx.font = '40px Extrabold sans-serif';
         let xDiff = 0;
         switch (t.state) {
@@ -170,11 +176,21 @@ function Byter([x, y, type = "sleeper"]) {
                     fillText = "?";
                 } else if (spawnDist.dist > 2) {
                     xDiff = t.cX() - t.spawnPoint.x;
-                    fillText = "...";
+                    if(t.type != "trooper"){
+                        fillText = "...";
+                    }
                     t.animState = "walking";
-                    t.x -= spawnDist.normalX * 3;
-                    t.y -= spawnDist.normalY * 3;
-                } else {
+                    if(mult > spawnDist.dist){
+                        mult = 1;
+                    }
+                    t.x -= spawnDist.normalX * mult;
+                    t.y -= spawnDist.normalY * mult;
+                } else if(spawnDist.dist <= 2 && t.type == "trooper"){
+                    let temp = t.altPoint;
+                    t.altPoint = t.spawnPoint
+                    t.spawnPoint = temp;
+                    t.changeState("idle");
+                }else{
                     t.animState = "idle";
                     if(t.animation.anim["idle"].counter == 0){
                         t.direction = Math.abs(t.direction - 1);
@@ -186,7 +202,7 @@ function Byter([x, y, type = "sleeper"]) {
                 break;
             case "attack":
                 if (t.frameCounter > 0) {
-                    fillText = "!";
+                    fillText = "!!";
                 }
                 if (t.frameCounter >= 15) {
                     t.animState = "exp";
@@ -228,12 +244,12 @@ function Byter([x, y, type = "sleeper"]) {
                                 t.food = null;
                             }
                         }
-                        fillText = "CHOMP";
+                        fillText = "byte";
                     }
                 }
                 break;
             case "sleep":
-                fillText = "Z"
+                fillText = "z"
                 t.animState = "sleep"
                 break;
             case "cooldown":
@@ -262,7 +278,11 @@ function Byter([x, y, type = "sleeper"]) {
             }
         }
         t.move();
-        ctx.fillText(fillText, t.x - t.w + 10, t.y - t.h / 2 - 10);
+        if(fillText == "🍗" ){
+            ctx.fillText(fillText, t.x - t.w + 10, t.y - t.h / 2 - 10);
+        }else{
+            textProc.drawText(fillText, t.x,t.y - t.h - 30,6, t.color);
+        }
         if(xDiff > t.w/2){
             t.direction = 1;
         }else if(xDiff < -t.w/2){
@@ -292,7 +312,9 @@ function Byter([x, y, type = "sleeper"]) {
             t.frameCounter = 30
         } else if (state == "falling") {
             t.frameCounter = FALL_FRAMES_HALVED * 2;
-        } else {
+        } else if(state == "idle" && t.type == "trooper"){
+            t.frameCounter = 90;
+        }else{
             t.frameCounter = 45;
         }
         t.state = state;
