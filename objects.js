@@ -168,7 +168,7 @@ function Byter([x, y, type = "sleeper"]) {
                 if (t.frameCounter > 0) {
                     t.animState = "exp";
                     fillText = "?";
-                } else if (spawnDist.dist > 1) {
+                } else if (spawnDist.dist > 2) {
                     xDiff = t.cX() - t.spawnPoint.x;
                     fillText = "...";
                     t.animState = "walking";

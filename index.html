@@ -30,7 +30,7 @@
     var maxVel = 6;
     var gameState = "game_over";
 
-    var currentStage = 8;
+    var currentStage = 9;
     var debugMode = false;
 
     var messageFrames = 0;
@@ -92,7 +92,7 @@
         PLAYER = new Player(0,0);
         textProc = new TextPrinter();
         //stages = [stage1, stage2,stage3, stage4, stage5, stage6, stage7, stage8];
-        stages = [stage1Data, stage2Data, stage3Data, stage4Data, stage5Data, stage6Data, stage7Data, stage8Data, stage9Data];
+        stages = [stage1Data, stage2Data, stage3Data, stage4Data, stage5Data, stage6Data, stage7Data, stage8Data, stage9Data, stage10Data];
         menuOBox = {
             "menu": new optBox(700, 600, 60,"play", function(){
             stage = genStage(stages[currentStage]);

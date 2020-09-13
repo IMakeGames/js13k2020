@@ -253,6 +253,30 @@ var stage9Data = [
     [300,750]
 ]
 
+var stage10Data = [
+    [
+        [10, 200, "origin", "left", 40, colorBlue],
+        [950, 450, "win", "right"],
+        [850, 950, "origin", "down", 40, colorPink],
+        [950, 200, "win", "right", 0,colorPink],
+        [10, 600, "origin", "left",40, colorYellow],
+        [450, 950, "trigger", "down"],
+        [100, 950, "trigger", "down"],
+        [650, 950, "con", "down"],
+        [250, 10, "con", "up"],
+        [10, 400, "con", "left"],
+        [950, 700, "con", "right"],
+        [250, 950, "con", "down"],
+        [550, 10, "con", "up"]
+    ],
+    [
+        [[[175, -10, 200, 200],[575, 810, 200, 200],[810, 125, 200, 200]]],
+        [[[25, 810, 200, 200], [0, 325, 200, 200],[810, 375, 200, 200]],false]
+    ],
+    [[525, 450, "active"]],
+    [300,750]
+]
+
 var genStage = (data)=>{
     let sockets = [];
     let ropes = [];
