@@ -296,7 +296,7 @@ var SOCKET_ANIMATION_FRAMES = 100;
 var SOCKET_WIDTH = 40;
 var SOCKET_HEIGHT = 50;
 
-function Socket(x,y,type,dir,amount,color){
+function Socket([x,y,type,dir,amount,color]){
     let t = this;
     t.outer = []
     t.hbData = []
@@ -341,7 +341,6 @@ function Socket(x,y,type,dir,amount,color){
     for(let i = 0; i<t.outer.length;i++){
         t.hitboxes.push(new Hitbox(t.outer[i][0],t.outer[i][1],t.outer[i][2],t.outer[i][3]));
     }
-    stage.solidBodies = stage.solidBodies.concat(t.hitboxes);
     t.update = ()=>{
         if(t.type != "origin"){
             if(t.rope && t.rope.state != "destroy"){

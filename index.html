@@ -30,19 +30,11 @@
     var maxVel = 6;
     var gameState = "game_over";
 
-    var currentStage = 7;
+    var currentStage = 6;
     var debugMode = false;
 
     var messageFrames = 0;
     var background = genBackground();
-    var colorRed = "255,0,0";
-    var colorRedAlph = "255,0,0,0.5";
-    var colorYellow = "255,255,0";
-    var colorYellowAlph = "255,255,0,0.5";
-    var colorBlue = "0,0,255";
-    var colorBlueAlph = "0,0,255,0.5";
-    var colorGray = "126,126,126";
-    var prepareWin = false;
 
     var PLAYER;
     var stages;
@@ -53,7 +45,7 @@
         gameState = "win";
         currentStage++;
         messageFrames = 120;
-        stage = stages[currentStage]();
+        stage = genStage(stages[currentStage]);
     }
     var lastTime;
 
@@ -99,18 +91,20 @@
         //Stage is defined here
         PLAYER = new Player(0,0);
         textProc = new TextPrinter();
-        stages = [stage1, stage2,stage3, stage4, stage5, stage6, stage7, stage8];
+        //stages = [stage1, stage2,stage3, stage4, stage5, stage6, stage7, stage8];
+        stages = [stage1Data, stage2Data, stage3Data, stage4Data, stage5Data, stage6Data, stage7Data, stage8Data];
         menuOBox = {
             "menu": new optBox(700, 600, 60,"play", function(){
-            stage = stages[currentStage]();
+            stage = genStage(stages[currentStage]);
             gameState = "playing"
         }, colorBlue),
             "game_over": new optBox(50, 550, 60,"try again?", function(){
-                stage = stages[currentStage]();
+                stage = genStage(stages[currentStage]);
                 gameState = "playing"
             })
         };
-        stage = stages[currentStage]();
+        stage = genStage(stages[0]);
+        stage = genStage(stages[currentStage]);
         lastTime = Date.now();
     }
     function gameIteration() {

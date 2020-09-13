@@ -115,7 +115,7 @@ function Hitbox(x, y, w, h) {
 var BYTER_WIDTH = 30;
 var BYTER_HEIGHT = 30;
 var idleAnimLengthProbDist = probDist([60,120,180]);
-function Byter(x, y, type = "sleeper") {
+function Byter([x, y, type = "sleeper"]) {
     let t = this;
     t.food = null;
     t.state = "idle";

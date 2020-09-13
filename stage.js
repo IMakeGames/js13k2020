@@ -11,7 +11,7 @@ function Stage(setup) {
     t.stops = [0, 0.17, 0.33, 0.5, 0.67, 0.83, 1];
     t.update = () => {
         if (!t.loaded) t.setup();
-        if(t.holes){
+        if (t.holes) {
             t.drawHoles();
         }
         t.sockets.forEach(socket => socket.update());
@@ -28,7 +28,7 @@ function Stage(setup) {
         return retHoles;
     }
 
-    t.drawHoles = ()=>{
+    t.drawHoles = () => {
         let hidden = document.createElement('canvas');
         hidden.width = 60;
         hidden.height = 60;
@@ -36,8 +36,8 @@ function Stage(setup) {
         ctx.save();
         ctx.beginPath();
         for (let i = 0; i < t.getHoles().length; i++) {
-            ctx.moveTo(t.getHoles()[i].x,t.getHoles()[i].y);
-            for(let j = 0; j<t.getHoles()[i].points.length;j++) {
+            ctx.moveTo(t.getHoles()[i].x, t.getHoles()[i].y);
+            for (let j = 0; j < t.getHoles()[i].points.length; j++) {
                 ctx.lineTo(t.getHoles()[i].points[j][0], t.getHoles()[i].points[j][1]);
             }
         }
@@ -94,150 +94,182 @@ function Stage(setup) {
     t.setup = () => {
         setup(t);
         PLAYER.goToSpawn();
+        PLAYER.state = "normal";
+        PLAYER.frameCounter = 0;
         PLAYER.health = 3;
         t.loaded = true;
     }
 }
 
-function stage1() {
-    return new Stage(function (t) {
-        t.sockets = [new Socket(480, 10, "origin", "up", 90, colorBlue)];
-        t.sockets.push(new Socket(480, 950, "win", "down"));
-        t.ropes = [t.sockets[0].rope];
-        PLAYER.spawnPoint.x = 100;
-        PLAYER.spawnPoint.y = 100;
+var colorBlue = "0,0,255";
+var colorRed = "255,0,0";
+var colorRedAlph = "255,0,0,0.5";
+var colorYellow = "255,255,0";
+var colorYellowAlph = "255,255,0,0.5";
+var colorBlueAlph = "0,0,255,0.5";
+var colorGray = "126,126,126";
+
+var stage1Data = [
+    [
+        [480, 10, "origin", "up", 90, colorBlue],
+        [480, 950, "win", "down"]
+    ],
+    [],
+    [],
+    [100,100]
+]
+
+var stage2Data = [
+    [
+        [950, 700, "origin", "right", 40, colorBlue],
+        [480, 950, "win", "down"]
+    ],
+    [[[[0, 300, 375, 75], [300, -10, 75, 385]]]],
+    [],
+    [100,100]
+]
+
+var stage3Data = [
+    [
+        [480, 10, "origin", "up", 45, colorBlue],
+        [10, 480, "con", "left"],
+        [950, 480, "con", "right"],
+        [480, 950, "win", "down"]
+    ],
+    [],
+    [],
+    [100,100]
+]
+
+var stage4Data = [
+    [
+        [10, 465, "origin", "left", 50, colorRed],
+        [950, 465, "end", "right",0,colorRed],
+        [480, 10, "origin", "up", 75, colorBlue],
+        [480, 950, "win", "down"]
+    ],
+    [],
+    [[900, 100]],
+    [100,100]
+]
+
+var stage5Data = [
+    [
+        [480, 10, "origin", "up", 45, colorBlue],
+        [10, 480, "con", "left"],
+        [950, 480, "con", "right"],
+        [480, 950, "win", "down"]
+    ],
+    [],
+    [[500, 900]],
+    [100,100]
+]
+
+var stage6Data = [
+    [
+        [480, 10, "origin", "up", 45, colorBlue],
+        [10, 425, "con", "left"],
+        [950, 505, "con", "right"],
+        [425, 950, "win", "down"]
+    ],
+    [[[[0, 510, 600, 100], [400, 390, 600, 100]]]],
+    [[810, 810, "active"]],
+    [100,850]
+]
+
+
+var stage7Data = [
+    [
+        [950, 100, "origin", "right", 70, colorBlue],
+        [600, 950, "win", "down"],
+        [750, 10, "origin", "up", 15, colorRed],
+        [950, 250, "end", "right", 0, colorRed],
+        [500, 950, "origin", "down", 50, colorYellow],
+        [10, 500, "trigger", "left"]
+    ],
+    [
+        [[[0, 300, 365, 75], [300, -10, 75, 385]]],
+        [[[635, 300, 365, 75], [625, -10, 75, 385]],false]
+    ],
+    [[100, 100, "active"]],
+    [100,850]
+]
+
+
+var stage8Data = [
+    [
+        [250, 10, "origin", "up", 50, colorBlue],
+        [950, 300, "con", "right"],
+        [10, 450, "con", "left"],
+        [950, 800, "win", "right"],
+        [500, 950, "origin", "down", 50, colorYellow],
+        [10, 600, "trigger", "left"]
+    ],
+    [
+        [[[175, -10, 200, 200], [810, 225, 200, 200]]],
+        [[[0, 375, 200, 200], [810, 725, 200, 200]],false]
+    ],
+    [[900, 650],[100, 200]],
+    [300,750]
+]
+
+var genStage = (data)=>{
+    let sockets = [];
+    let ropes = []
+    let holes = []
+    let enemies = []
+    let solidBodies = []
+    let con = null;
+    let red = null;
+    for(let i = 0;i<data[0].length;i++){
+        let soc = new Socket(data[0][i]);
+        if(soc.type == "con"){
+            if(con){
+                con.setConnection(soc);
+                con = null;
+            }else{
+                con = soc;
+            }
+        }
+        if(soc.type == "origin"){
+            if(soc.color != colorRed){
+                ropes.push(soc.rope);
+            }else if(!red){
+                red = soc.rope;
+            }
+        }else if(soc.color == colorRed){
+            red.attach(soc, soc.conPt);
+            red = null;
+        }
+        solidBodies = solidBodies.concat(soc.hitboxes);
+        sockets.push(soc);
+    }
+    for(let i = 0;i<data[1].length;i++) {
+        let hole = genHoles([],data[1][i][1]);
+        for(let j = 0; j < data[1][i][0].length;j++){
+            let holeData = data[1][i][0][j];
+            hole.holes.push(new Hole(holeData));
+        }
+        holes.push(hole);
+    }
+    for(let i = 0;i<data[2].length;i++){
+        enemies.push(new Byter(data[2][i]));
+    }
+    return new Stage(function(t){
+        t.sockets = sockets;
+        t.ropes = ropes;
+        t.holes = holes;
+        t.enemies = enemies;
+        PLAYER.spawnPoint = {x: data[3][0], y: data[3][1]}
+        t.solidBodies = solidBodies;
     });
 }
 
-function stage2() {
-    return new Stage(function (t) {
-        t.sockets = [new Socket(950, 700, "origin", "right", 40, colorBlue)];
-        t.sockets.push(new Socket(480, 950, "win", "down"));
-        t.holes = [genHoles([new Hole(0, 300, 375, 75), new Hole(300, -10, 75, 385)])]
-        t.ropes = [t.sockets[0].rope]
-        PLAYER.spawnPoint.x = 100;
-        PLAYER.spawnPoint.y = 100;
-    });
+var iterate = (limit, fn)=>{
+    for(let i = 0; i < limit; i++){
+        fn(i);
+    }
 }
-
-function stage3() {
-    return new Stage(function (t) {
-        t.sockets = [new Socket(480, 10, "origin", "up", 45, colorBlue)];
-        t.sockets.push(new Socket(10, 480, "con", "left"));
-        t.sockets.push(new Socket(950, 480, "con", "right"));
-        t.sockets.push(new Socket(480, 950, "win", "down"));
-        t.sockets[1].setConnection(t.sockets[2]);
-        t.ropes = [t.sockets[0].rope];
-        PLAYER.spawnPoint.x = 100;
-        PLAYER.spawnPoint.y = 100;
-    });
-}
-
-function stage4(){
-    return new Stage(function (t) {
-        t.sockets = [new Socket(10, 465, "origin", "left", 50, colorRed)];
-        t.sockets.push(new Socket(950, 465, "end", "right"));
-        t.sockets.push(new Socket(480, 10, "origin", "up", 90, colorBlue));
-        t.sockets.push(new Socket(480, 950, "win", "down"));
-        t.enemies = [new Byter(900, 100)];
-        t.ropes = [t.sockets[0].rope, t.sockets[2].rope];
-        PLAYER.spawnPoint.x = 100;
-        PLAYER.spawnPoint.y = 100;
-        t.sockets[0].rope.attach(t.sockets[1], t.sockets[1].conPt);
-    });
-}
-
-function stage5(){
-    return new Stage(function (t) {
-        t.sockets = [new Socket(480, 10, "origin", "up", 45, colorBlue)];
-        t.sockets.push(new Socket(10, 480, "con", "left"));
-        t.sockets.push(new Socket(950, 480, "con", "right"));
-        t.sockets.push(new Socket(480, 950, "win", "down"));
-        t.enemies = [new Byter(500, 900)];
-        t.sockets[1].setConnection(t.sockets[2]);
-        t.ropes = [t.sockets[0].rope];
-        PLAYER.spawnPoint.x = 100;
-        PLAYER.spawnPoint.y = 100;
-    })
-}
-
-function stage6(){
-    return new Stage(function (t) {
-        t.sockets = [new Socket(480, 10, "origin", "up", 50, colorBlue)];
-        t.sockets.push(new Socket(10, 425, "con", "left"));
-        t.sockets.push(new Socket(950, 505, "con", "right"));
-        t.sockets.push(new Socket(425, 950, "win", "down"));
-        t.holes = [genHoles([new Hole(0, 510, 600, 100), new Hole(400, 390, 600, 100)])];
-        t.enemies = [new Byter(810, 810, "active")];
-        t.ropes = [t.sockets[0].rope];
-        t.sockets[1].setConnection(t.sockets[2]);
-        PLAYER.spawnPoint.x = 100;
-        PLAYER.spawnPoint.y = 850;
-    })
-}
-
-function stage7(){
-    return new Stage(function (t) {
-        t.sockets = [new Socket(950, 100, "origin", "right", 70, colorBlue)];
-        t.sockets.push(new Socket(600, 950, "win", "down"));
-        t.sockets.push(new Socket(750, 10, "origin", "up", 15, colorRed));
-        t.sockets.push(new Socket(950, 250, "end", "right"));
-        t.sockets.push(new Socket(500, 950, "origin", "down", 50, colorYellow));
-        t.sockets.push(new Socket(10, 500, "trigger", "left"));
-        t.holes = [genHoles([new Hole(0, 300, 365, 75), new Hole(300, -10, 75, 385)])];
-        t.holes.push(genHoles([new Hole(635, 300, 365, 75), new Hole(625, -10, 75, 385)], false));
-        t.enemies = [new Byter(100, 100, "active")];
-        t.ropes = [t.sockets[0].rope, t.sockets[4].rope];
-        t.sockets[2].rope.attach(t.sockets[3], t.sockets[3].conPt);
-        // t.sockets[1].setConnection(t.sockets[2]);
-        PLAYER.spawnPoint.x = 100;
-        PLAYER.spawnPoint.y = 850;
-    })
-}
-
-function stage7(){
-    return new Stage(function (t) {
-        t.sockets = [new Socket(950, 100, "origin", "right", 70, colorBlue)];
-        t.sockets.push(new Socket(600, 950, "win", "down"));
-        t.sockets.push(new Socket(750, 10, "origin", "up", 15, colorRed));
-        t.sockets.push(new Socket(950, 250, "end", "right"));
-        t.sockets.push(new Socket(500, 950, "origin", "down", 50, colorYellow));
-        t.sockets.push(new Socket(10, 500, "trigger", "left"));
-        t.holes = [genHoles([new Hole(0, 300, 365, 75), new Hole(300, -10, 75, 385)])];
-        t.holes.push(genHoles([new Hole(635, 300, 365, 75), new Hole(625, -10, 75, 385)], false));
-        t.enemies = [new Byter(100, 100, "active")];
-        t.ropes = [t.sockets[0].rope, t.sockets[4].rope];
-        t.sockets[2].rope.attach(t.sockets[3], t.sockets[3].conPt);
-        // t.sockets[1].setConnection(t.sockets[2]);
-        PLAYER.spawnPoint.x = 100;
-        PLAYER.spawnPoint.y = 850;
-    })
-}
-
-function stage8(){
-    return new Stage(function (t) {
-        t.sockets = [new Socket(250, 10, "origin", "up", 50, colorBlue)];
-        t.sockets.push(new Socket(950, 300, "con", "right"));
-        t.sockets.push(new Socket(10, 450, "con", "left"));
-        t.sockets.push(new Socket(950, 800, "win", "right"));
-        t.sockets.push(new Socket(500, 950, "origin", "down", 50, colorYellow));
-        //t.sockets.push(new Socket(950, 500, "trigger", "right"));
-        t.sockets.push(new Socket(10, 600, "trigger", "left"));
-        t.holes = [genHoles([new Hole(175, -10, 200, 200)])];
-        t.holes.push(genHoles([new Hole(810, 225, 200, 200)], ));
-        t.holes.push(genHoles([new Hole(0, 375, 200, 200)], false));
-        t.holes.push(genHoles([new Hole(810, 725, 200, 200)], false));
-        t.enemies = [new Byter(900, 650, )];
-        t.enemies.push(new Byter(100, 200));
-        t.ropes = [t.sockets[0].rope, t.sockets[4].rope];
-        t.sockets[1].setConnection(t.sockets[2]);
-        PLAYER.spawnPoint.x = 100;
-        PLAYER.spawnPoint.y = 850;
-    })
-}
-
-
-
 var genHoles = (holeList, active = true) => {
     return {
         holes: holeList,
@@ -245,7 +277,7 @@ var genHoles = (holeList, active = true) => {
     }
 }
 
-function Hole(x, y, w, h) {
+function Hole([x, y, w, h]) {
     let t = this;
     t.setVals(x, y, w, h);
     t.points = [];
