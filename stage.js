@@ -5,6 +5,8 @@ function Stage(setup) {
     t.holes = [];
     t.ropes = [];
     t.solidBodies = [];
+    t.winFrameCounter = 0;
+    t.wins = [];
     t.signs = [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]];
     t.colors = [[50, 0, 0], [80, 15, 40], [110, 30, 80], [140, 45, 120]];
     t.ranges = [{min: 50, max: 140}, {min: 0, max: 45}, {min: 0, max: 120}];
@@ -17,6 +19,23 @@ function Stage(setup) {
         t.sockets.forEach(socket => socket.update());
         t.ropes.forEach(rope => !rope.attached ? rope.update() : null);
         t.enemies.forEach(enemy => enemy.update());
+        let win = true;
+        it(t.wins.length,(i)=>{
+            if(!t.wins[i].rope){
+                win = false;
+            }
+        });
+        if(win){
+            t.winFrameCounter++;
+            if(t.winFrameCounter > WIN_FRAMES && !t.enemies.filter(en => en.state == "eating").length){
+                triggerWin();
+            }
+        }else{
+            t.winFrameCounter = 0;
+        }
+         ctx.fillStyle = "white"
+        ctx.font = '25px serif';
+        ctx.fillText('ropes in list: ' + t.ropes.length, 50, 910);
     }
     t.getHoles = () => {
         let retHoles = []
@@ -102,11 +121,12 @@ function Stage(setup) {
 }
 
 var colorBlue = "0,0,255";
+var colorBlueAlph = "0,0,255,0.5";
 var colorRed = "255,0,0";
 var colorRedAlph = "255,0,0,0.5";
 var colorYellow = "255,255,0";
 var colorYellowAlph = "255,255,0,0.5";
-var colorBlueAlph = "0,0,255,0.5";
+var colorPink = "255,0,255";
 var colorGray = "126,126,126";
 
 var stage1Data = [
@@ -213,12 +233,33 @@ var stage8Data = [
     [300,750]
 ]
 
+var stage9Data = [
+    [
+        [10, 300, "origin", "left", 30, colorBlue],
+        [10, 400, "win", "left",0, colorPink],
+        [950, 550, "origin", "right", 30, colorPink],
+        [950, 700, "win", "right"],
+        [300, 10, "con", "up"],
+        [700, 950, "con", "down"],
+        [700, 10, "con", "up"],
+        [300, 950, "con", "down"],
+        [10, 150, "con", "left"],
+        [950, 150, "con", "right"],
+        [10, 850, "con", "left"],
+        [950, 850, "con", "right"],
+    ],
+    [],
+    [],
+    [300,750]
+]
+
 var genStage = (data)=>{
     let sockets = [];
-    let ropes = []
-    let holes = []
-    let enemies = []
-    let solidBodies = []
+    let ropes = [];
+    let holes = [];
+    let enemies = [];
+    let solidBodies = [];
+    let wins = [];
     let con = null;
     let red = null;
     it(data[0].length, (i)=>{
@@ -237,6 +278,8 @@ var genStage = (data)=>{
             }else if(!red){
                 red = soc.rope;
             }
+        }else if(soc.type == "win"){
+            wins.push(soc);
         }else if(soc.color == colorRed){
             red.attach(soc, soc.conPt);
             red = null;
@@ -262,6 +305,7 @@ var genStage = (data)=>{
         t.enemies = enemies;
         PLAYER.spawnPoint = {x: data[3][0], y: data[3][1]}
         t.solidBodies = solidBodies;
+        t.wins = wins;
     });
 }
 

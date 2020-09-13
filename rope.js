@@ -246,6 +246,22 @@ function RopeSection(initX, initY, amount, color, origin = null){
         }
     }
 
+    t.checkProximity = (ent)=>{
+        if(t.state != "destroy"){
+            if(t.getDist(ent.center()).dist < 50){
+                return true
+            }else{
+                if(!t.child){
+                    return false
+                }else{
+                    return t.child.checkProximity(ent);
+                }
+            }
+        }else{
+            return false;
+        }
+    }
+
     t.draw = ()=>{
         if(t.state != "normal" && t.currentOutlineDelay){
             t.currentOutlineDelay--;
@@ -292,7 +308,7 @@ function RopeSection(initX, initY, amount, color, origin = null){
 }
 RopeSection.prototype = Hitbox();
 
-var SOCKET_ANIMATION_FRAMES = 100;
+var SOCKET_ANIMATION_FRAMES = 180;
 var SOCKET_WIDTH = 40;
 var SOCKET_HEIGHT = 50;
 
@@ -335,7 +351,6 @@ function Socket([x,y,type,dir,amount,color]){
         t.color = colorGray;
     }
     t.animationFrameCounter = SOCKET_ANIMATION_FRAMES/2;
-    t.winFrameCounter = 0;
     t.amount = amount;
     t.rope = type == "origin" && amount > 0 ? new RopeSection(t.conPt[0],t.conPt[1],t.amount, color, t) : null;
     it(t.outer.length, (i)=>{
@@ -384,26 +399,17 @@ function Socket([x,y,type,dir,amount,color]){
             });
         }
         if(t.type == "win"){
-            if(t.rope){
-                t.winFrameCounter++;
-                let eatingEnemies = stage.enemies.filter(en => en.state == "eating")
-                if(t.winFrameCounter > WIN_FRAMES && !eatingEnemies.length){
-                    triggerWin();
-                }
-            }else{
-                t.winFrameCounter = 0;
-                ctx.beginPath();
-                let per = t.animationFrameCounter/SOCKET_ANIMATION_FRAMES;
-                let invPer = 1 - per;
-                let radius = 40*invPer;
-                ctx.arc(t.conPt[0], t.conPt[1], radius,0, 2 * Math.PI, false);
-                ctx.lineWidth = 10;
-                ctx.strokeStyle = 'rgba(0, 0, 255, '+ per +')';
-                ctx.stroke();
-                t.animationFrameCounter++;
-                if(t.animationFrameCounter > SOCKET_ANIMATION_FRAMES){
-                    t.animationFrameCounter = 0;
-                }
+            ctx.beginPath();
+            let per = t.animationFrameCounter/SOCKET_ANIMATION_FRAMES;
+            let invPer = 1 - per;
+            let radius = 40*invPer;
+            ctx.arc(t.conPt[0], t.conPt[1], radius,0, 2 * Math.PI, false);
+            ctx.lineWidth = 15;
+            ctx.strokeStyle = 'rgba(' + t.color + ', '+ per +')';
+            ctx.stroke();
+            t.animationFrameCounter++;
+            if(t.animationFrameCounter > SOCKET_ANIMATION_FRAMES){
+                t.animationFrameCounter = 0;
             }
         }
     }

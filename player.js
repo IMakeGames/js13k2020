@@ -31,7 +31,30 @@ function Player(initX, initY){
                 if (t.rope) {
                     let attachToSoc = false;
                     if (soc = stage.sockets.find(socket => t.getDist({x: socket.conPt[0], y: socket.conPt[1]}).dist < 50 && !socket.rope)) {
-                        if(soc.color === colorGray || soc.color === t.rope.color){
+                        let conXdiff = t.cX() - soc.conPt[0];
+                        let conYdiff = t.cY() - soc.conPt[1];
+                        let betweenX = false;
+                        let betweenY = false;
+                        it(stage.ropes.length,(i)=>{
+                            let el = t.getClosestLink(stage.ropes[i],stage.ropes[i]);
+                            if(stage.ropes[i] !== t.rope && t.getDist(el).dist < 50){
+                                let elXdiff = t.cX() - el.x;
+                                let elYdiff = t.cY() - el.y;
+                                if(
+                                    (conXdiff > 0 && elXdiff > 0 && elXdiff < conXdiff) ||
+                                    (conXdiff < 0 && elXdiff < 0 && elXdiff > conXdiff)
+                                ){
+                                    betweenX = true;
+                                }
+                                if(
+                                    (conYdiff > 0 && elYdiff > 0 && elYdiff < conYdiff) ||
+                                    (conYdiff < 0 && elYdiff < 0 && elYdiff > conYdiff)
+                                ){
+                                    betweenY = true;
+                                }
+                            }
+                        });
+                        if(soc.color === colorGray || soc.color === t.rope.color && !betweenX && !betweenY){
                             t.rope.attach(soc, soc.conPt);
                             attachToSoc = true;
                         }
@@ -143,6 +166,7 @@ function Player(initX, initY){
             ctx.stroke();
         }
     }
+
     t.getHoldPoint = ()=>{
         let childDist = t.getDist(t.rope);
         return {x: t.cX() - childDist.normalX * HOLD_RADIUS, y: t.cY() - childDist.normalY * HOLD_RADIUS}

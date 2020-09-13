@@ -96,6 +96,16 @@ function Hitbox(x, y, w, h) {
                 }
             }
         },
+        getClosestLink(food, el){
+            let t = this;
+            let closest = food
+            if (!el.child) {
+                return closest;
+            } else if (t.getDist(el.child).dist < t.getDist(closest).dist) {
+                closest = el.child;
+            }
+            return t.getClosestLink(closest, el.child);
+        },
         goToSpawn() {
             let t = this;
             t.x = t.spawnPoint.x;
@@ -141,7 +151,7 @@ function Byter([x, y, type = "sleeper"]) {
         "cd": genAnim([6], 180),
         "falling": genAnim([6], 180),
         "sleep": genAnim([2], 180)
-    },3,4, 0, t.color);
+    },4,10, 0, t.color);
     t.update = () => {
         let scale = 1;
         let reSpawnPos = 0;
@@ -273,15 +283,6 @@ function Byter([x, y, type = "sleeper"]) {
             t.changeState("eating");
         }
     };
-    t.getClosestLink = (food, el) => {
-        let closest = food
-        if (!el.child) {
-            return closest;
-        } else if (t.getDist(el.child).dist < t.getDist(closest).dist) {
-            closest = el.child;
-        }
-        return t.getClosestLink(closest, el.child);
-    }
     t.triggerFall = () => {
         t.changeState("falling");
     }
