@@ -29,7 +29,7 @@
     var dashMaxVel = 32;
     var maxVel = 6;
     var gameState = "menu";
-
+    var flashFrames = 0;
     var currentStage = 0;
     var debugMode = false;
 
@@ -155,6 +155,11 @@
                     ctx.fillRect(initx+5, y+5, width-10, height-10);
                 }
                 initx+= 10 + width;
+            }
+            if(flashFrames > 0){
+                ctx.fillStyle = "white";
+                ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                flashFrames--;
             }
             //=========
         }

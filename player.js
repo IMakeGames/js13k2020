@@ -70,6 +70,7 @@ function Player(initX, initY){
                     }
                 } else if (!t.dashCoolDown && (Date.now() - lastMouseUp < 270)) {
                     let distFromMouse = t.getDist(mousePos);
+                    t.state = "dashing";
                     t.ang = distFromMouse.angle - Math.PI;
                     t.dashFrames = TOTAL_DASH_FRAMES;
                 }
@@ -119,20 +120,22 @@ function Player(initX, initY){
             RESOLVE_SHORT_CLICK = false;
 
             if (t.dashFrames) {
-                if(t.dashFrames%2 == 0){
+                if(t.dashFrames%2 == 0 && t.state == "dashing"){
                     let sheet = COLORED_SPRITE_SHEETS[SOLID_COLORS[t.dashFrames/2 - 1]];
                     t.dashAfterImg.push([sheet,t.x,t.y,10]);
                 }
                 t.dashFrames--;
                 if (!t.dashFrames) {
+                    t.state = "normal";
                     t.dashCoolDown = TOTAL_DASH_CD;
                 }
             }
             t.checkFall();
         }else{
-            if(t.frameCounter >= FALL_FRAMES_HALVED){
+            if(t.frameCounter > FALL_FRAMES_HALVED){
                 scale = (t.frameCounter - FALL_FRAMES_HALVED)/FALL_FRAMES_HALVED;
-
+            }else if(t.frameCounter == FALL_FRAMES_HALVED){
+                flashFrames = 3;
             }else{
                 t.goToSpawn();
                 reSpawnPos = t.frameCounter/FALL_FRAMES_HALVED;
@@ -203,6 +206,8 @@ function Player(initX, initY){
     }
     t.impact = (enemyAngle) => {
         t.deductHealth();
+        t.state = "recoiling"
+        flashFrames = 3;
         t.ang = enemyAngle - Math.PI;
         t.dashFrames = TOTAL_DASH_FRAMES/2;
     }
